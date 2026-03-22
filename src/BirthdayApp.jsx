@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import SurprisePage from "./SurprisePage";
 
-const TARGET = new Date("2024-01-01T00:00:00+05:30");
+const TARGET = new Date("2026-03-25T00:00:00+05:30");
 
 function getTimeLeft() {
   const diff = TARGET - new Date();
