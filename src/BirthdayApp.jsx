@@ -18,9 +18,8 @@ function WaitAlert({ onClose }) {
     <div style={styles.overlay} onClick={onClose}>
       <div style={styles.alertBox} className="alertPop" onClick={e => e.stopPropagation()}>
         <div style={{ fontSize: "3rem", marginBottom: 8 }}>⏳</div>
-        <h2 style={styles.alertTitle}>Patience, Dear! 💕</h2>
+        <h2 style={styles.alertTitle}>Patience, Dear! 💛</h2>
         <p style={styles.alertMsg}>
-          Your surprise is being wrapped with love.<br />
           Please wait until the timer ends on<br />
           <span style={styles.alertDate}>25th March • 12:00 AM IST</span>
         </p>
