@@ -1,590 +1,471 @@
 import { useState, useEffect, useRef } from "react";
 
-/* ═══════════════════════════════════════════════════
-   DESIGN SYSTEM — Hogwarts Legacy Inspired
-   Dark atmospheric, deep fog, warm gold, epic scale
-═══════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   DESIGN SYSTEM — Hogwarts Legacy Cinematic v2
+   Inspired by: Portkey Games / Warner Bros aesthetic
+   Full-bleed. Cinematic scale. Atmospheric depth.
+═══════════════════════════════════════════════════════ */
 export const T = {
-  bg:     "#080608",
-  dark:   "#0a0810",
-  gold:   "#c9a256",
-  goldBr: "#e8c97a",
-  goldDm: "#6b5520",
-  mist:   "rgba(180,175,210,0.06)",
-  silver: "rgba(220,215,235,0.75)",
-  silverDm:"rgba(180,175,200,0.45)",
-  crimson:"rgba(160,40,40,0.9)",
-  parch:  "rgba(230,210,170,0.82)",
-  parchDm:"rgba(190,170,130,0.6)",
+  bg:       "#04060d",
+  bg2:      "#080c18",
+  navy:     "#0a1020",
+  steel:    "#141e35",
+  gold:     "#c9a84c",
+  goldL:    "#e8c96d",
+  goldD:    "#7a6530",
+  goldGlow: "rgba(201,168,76,0.15)",
+  mist:     "rgba(140,170,220,0.06)",
+  silver:   "#c8d0de",
+  silverD:  "#7a8494",
+  parch:    "#ede0c4",
+  parchD:   "#c8b890",
+  crimson:  "#8b1a1a",
+  light:    "rgba(220,235,255,0.92)",
 };
 
-export const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=IM+Fell+English:ital@0;1&display=swap');`;
+export const FONTS = `
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;900&family=IM+Fell+English:ital@0;1&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap');
+`;
 
 export const G = `
 ${FONTS}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body,#root{width:100%;min-height:100vh;background:#080608;overflow-x:hidden;}
-::-webkit-scrollbar{width:3px;}
-::-webkit-scrollbar-track{background:#080608;}
-::-webkit-scrollbar-thumb{background:rgba(201,162,86,.3);border-radius:2px;}
+html,body,#root{width:100%;min-height:100vh;background:#04060d;overflow-x:hidden;}
+::-webkit-scrollbar{width:2px;}
+::-webkit-scrollbar-track{background:#02030a;}
+::-webkit-scrollbar-thumb{background:rgba(201,168,76,.35);border-radius:2px;}
 
-@keyframes fadeIn    {from{opacity:0}to{opacity:1}}
-@keyframes fadeUp    {from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
-@keyframes breathe   {0%,100%{opacity:.65}50%{opacity:1}}
-@keyframes shimmer   {0%{background-position:200% center}100%{background-position:-200% center}}
-@keyframes fogDrift  {0%{transform:translateX(0) scaleX(1)}100%{transform:translateX(-60px) scaleX(1.08)}}
-@keyframes fogDrift2 {0%{transform:translateX(0)}100%{transform:translateX(60px)}}
-@keyframes particleUp{0%{transform:translateY(0) translateX(0);opacity:0}8%{opacity:.7}88%{opacity:.3}100%{transform:translateY(-90vh) translateX(20px);opacity:0}}
-@keyframes goldGlow  {0%,100%{text-shadow:0 0 20px rgba(201,162,86,.2)}50%{text-shadow:0 0 50px rgba(201,162,86,.6),0 0 100px rgba(201,162,86,.2)}}
-@keyframes lightRay  {0%,100%{opacity:0}50%{opacity:1}}
-@keyframes panSlow   {0%{transform:scale(1.04) translateX(0)}100%{transform:scale(1.04) translateX(-2%)}}
-@keyframes runeRotate{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-@keyframes orbPulse  {0%,100%{transform:scale(1);opacity:.4}50%{transform:scale(1.15);opacity:.7}}
-@keyframes borderPulse{0%,100%{border-color:rgba(201,162,86,.18)}50%{border-color:rgba(201,162,86,.45)}}
-@keyframes stampIn   {0%{transform:scale(3.5) rotate(-14deg);opacity:0}65%{transform:scale(.95) rotate(-6deg)}100%{transform:scale(1) rotate(-6deg);opacity:1}}
-@keyframes confettiFall{0%{transform:translateY(-40px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(600deg);opacity:0}}
-@keyframes alertUp   {from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes countFlip {from{transform:rotateX(-30deg);opacity:.4}to{transform:rotateX(0);opacity:1}}
-@keyframes lightning {0%,86%,100%{opacity:0}88%,94%{opacity:.08}91%,97%{opacity:0}}
-@keyframes warpIn    {0%{clip-path:inset(0 100% 0 0);opacity:0}100%{clip-path:inset(0 0 0 0);opacity:1}}
+@keyframes fadeIn      {from{opacity:0}to{opacity:1}}
+@keyframes fadeUp      {from{opacity:0;transform:translateY(34px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeDown    {from{opacity:0;transform:translateY(-22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeLeft    {from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:translateX(0)}}
+@keyframes fadeRight   {from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+@keyframes scaleIn     {from{opacity:0;transform:scale(.93)}to{opacity:1;transform:scale(1)}}
+@keyframes goldShimmer {0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes shimmerSlide{0%{background-position:200% center}100%{background-position:-200% center}}
+@keyframes mistDrift   {0%{transform:translateX(0) scaleX(1)}100%{transform:translateX(-4%) scaleX(1.04)}}
+@keyframes mistDrift2  {0%{transform:translateX(0) scaleX(1)}100%{transform:translateX(4%) scaleX(1.04)}}
+@keyframes godRayPulse {0%,100%{opacity:.1}50%{opacity:.24}}
+@keyframes particleRise{0%{transform:translateY(0);opacity:0}10%{opacity:.9}90%{opacity:.2}100%{transform:translateY(-85vh);opacity:0}}
+@keyframes runeRotate  {from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes cardGlow    {0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,0),0 32px 80px rgba(0,0,0,.7)}50%{box-shadow:0 0 70px rgba(201,168,76,.08),0 32px 80px rgba(0,0,0,.7)}}
+@keyframes confettiF   {0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(540deg);opacity:0}}
+@keyframes alertIn     {0%{opacity:0;transform:scale(.94) translateY(22px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes lightning   {0%,89%,100%{opacity:0}91%,97%{opacity:.06}93%,99%{opacity:0}}
+@keyframes breathe     {0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.04);opacity:1}}
+@keyframes launchWipe  {0%{opacity:0}12%{opacity:1}88%{opacity:1}100%{opacity:0;pointer-events:none}}
+@keyframes buttonGlow  {0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,0),0 6px 24px rgba(0,0,0,.6)}50%{box-shadow:0 0 0 7px rgba(201,168,76,.08),0 6px 24px rgba(0,0,0,.6)}}
+@keyframes glowPulse   {0%,100%{filter:drop-shadow(0 0 8px rgba(201,168,76,.35))}50%{filter:drop-shadow(0 0 20px rgba(201,168,76,.7))}}
+@keyframes panDown     {0%{transform:translateY(-2%)}100%{transform:translateY(0)}}
 
-.fi  {animation:fadeIn .8s ease forwards}
-.fiu {animation:fadeUp .9s ease forwards}
-.glow{animation:goldGlow 3s ease-in-out infinite}
+.fi  {animation:fadeIn  .8s ease both}
+.fiu {animation:fadeUp  .95s cubic-bezier(.23,1,.32,1) both}
+.fil {animation:fadeLeft .85s cubic-bezier(.23,1,.32,1) both}
+.fir {animation:fadeRight .85s cubic-bezier(.23,1,.32,1) both}
+.fis {animation:scaleIn .75s cubic-bezier(.23,1,.32,1) both}
 .breathe{animation:breathe 4s ease-in-out infinite}
-button:not([disabled]):hover{filter:brightness(1.18)!important;transform:translateY(-2px)!important;}
+.goldShimmer{animation:goldShimmer 3.5s ease-in-out infinite}
+.glowPulse{animation:glowPulse 3s ease-in-out infinite}
+
+button{transition:all .4s cubic-bezier(.23,1,.32,1);}
+button:not([disabled]):hover{filter:brightness(1.22)!important;transform:translateY(-3px)!important;}
+button:not([disabled]):active{transform:translateY(-1px)!important;}
 `;
 
-/* ═══════════════════════════════════════════════════
-   CANVAS — Magical floating particles (fireflies/embers)
-═══════════════════════════════════════════════════ */
-export function MagicDust({ count = 60, color = "#c9a256" }) {
+/* ─── MAGIC DUST PARTICLES ─────────────────────────── */
+export function MagicDust({ count = 50 }) {
   const ref = useRef(null);
   useEffect(() => {
-    const c = ref.current; if (!c) return;
-    const ctx = c.getContext("2d");
-    let W = c.width = window.innerWidth;
-    let H = c.height = window.innerHeight;
-    const onResize = () => { W = c.width = window.innerWidth; H = c.height = window.innerHeight; };
+    const canvas = ref.current; if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    let W = canvas.width = window.innerWidth;
+    let H = canvas.height = window.innerHeight;
+    const onResize = () => { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; };
     window.addEventListener("resize", onResize);
     const pts = Array.from({ length: count }, () => ({
-      x: Math.random() * W, y: H * 0.3 + Math.random() * H * 0.7,
-      vx: (Math.random() - .5) * .35, vy: -(0.15 + Math.random() * .45),
-      r: 0.6 + Math.random() * 1.6, a: Math.random(), da: (Math.random() > .5 ? 1 : -1) * .006,
+      x: Math.random() * W, y: H * .15 + Math.random() * H * .85,
+      vx: (Math.random() - .5) * .22, vy: -.1 - Math.random() * .28,
+      r: .5 + Math.random() * 1.7,
+      a: Math.random(), da: .002 + Math.random() * .004,
+      type: Math.random() > .6 ? "gold" : Math.random() > .5 ? "blue" : "silver",
     }));
     let raf;
     const draw = () => {
       ctx.clearRect(0, 0, W, H);
-      for (const p of pts) {
-        p.x += p.vx; p.y += p.vy; p.a += p.da;
-        if (p.a > .85 || p.a < .05) p.da *= -1;
-        if (p.y < -10) { p.y = H + 10; p.x = Math.random() * W; }
+      pts.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        p.a += p.da; if (p.a > .9 || p.a < .04) p.da *= -1;
+        if (p.y < -30) { p.y = H + 30; p.x = Math.random() * W; }
+        const color = p.type === "gold" ? "#c9a84c" : p.type === "blue" ? "#5080c8" : "#8090b0";
         ctx.save();
         ctx.globalAlpha = p.a * .65;
-        ctx.shadowBlur = 8; ctx.shadowColor = color;
+        ctx.shadowBlur = p.type === "gold" ? 12 : 6;
+        ctx.shadowColor = color;
         ctx.fillStyle = color;
         ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
-      }
+      });
       raf = requestAnimationFrame(draw);
     };
     draw();
     return () => { window.removeEventListener("resize", onResize); cancelAnimationFrame(raf); };
   }, []);
-  return <canvas ref={ref} style={{ position:"fixed", inset:0, pointerEvents:"none", zIndex:2, opacity:.8 }}/>;
+  return <canvas ref={ref} style={{ position:"fixed",inset:0,pointerEvents:"none",zIndex:2,opacity:.78 }}/>;
 }
 
-/* ═══════════════════════════════════════════════════
-   CINEMATIC CASTLE — Deep, layered, atmospheric
-   Inspired by Hogwarts Legacy — no flat colors, depth
-═══════════════════════════════════════════════════ */
-export function CinematicScene() {
+/* ─── CINEMATIC BACKGROUND ──────────────────────────── */
+export function CinematicBG() {
   return (
-    <div style={{ position:"fixed", inset:0, zIndex:0, overflow:"hidden" }}>
-      <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice"
-        style={{ position:"absolute", inset:0, width:"100%", height:"100%", animation:"panSlow 30s ease-in-out infinite alternate" }}>
-        <defs>
-          {/* Sky gradient — dark atmospheric */}
-          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#060409"/>
-            <stop offset="35%"  stopColor="#0a0812"/>
-            <stop offset="70%"  stopColor="#0c0a14"/>
-            <stop offset="100%" stopColor="#100e1a"/>
-          </linearGradient>
-          {/* Far mist */}
-          <radialGradient id="mistCenter" cx="50%" cy="85%" r="60%">
-            <stop offset="0%"   stopColor="#b8b0d8" stopOpacity=".12"/>
-            <stop offset="100%" stopColor="transparent" stopOpacity="0"/>
-          </radialGradient>
-          {/* Castle stone */}
-          <linearGradient id="stoneA" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#18152a"/>
-            <stop offset="100%" stopColor="#0d0b16"/>
-          </linearGradient>
-          <linearGradient id="stoneB" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#1a1730"/>
-            <stop offset="100%" stopColor="#0e0c1a"/>
-          </linearGradient>
-          <linearGradient id="stoneDark" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#141128"/>
-            <stop offset="100%" stopColor="#08070f"/>
-          </linearGradient>
-          {/* Tower cap gradient */}
-          <linearGradient id="towerCap" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#201d38"/>
-            <stop offset="100%" stopColor="#0e0c1a"/>
-          </linearGradient>
-          {/* Window warm glow */}
-          <radialGradient id="winWarm" cx="50%" cy="50%" r="50%">
-            <stop offset="0%"   stopColor="#e8a030" stopOpacity=".9"/>
-            <stop offset="60%"  stopColor="#c07010" stopOpacity=".5"/>
-            <stop offset="100%" stopColor="transparent" stopOpacity="0"/>
-          </radialGradient>
-          <radialGradient id="winCool" cx="50%" cy="50%" r="50%">
-            <stop offset="0%"   stopColor="#a0c8ff" stopOpacity=".6"/>
-            <stop offset="100%" stopColor="transparent" stopOpacity="0"/>
-          </radialGradient>
-          {/* Atmospheric glow around castle */}
-          <radialGradient id="castleAura" cx="50%" cy="70%" r="45%">
-            <stop offset="0%"   stopColor="#c9a256" stopOpacity=".07"/>
-            <stop offset="100%" stopColor="transparent" stopOpacity="0"/>
-          </radialGradient>
-          <radialGradient id="sunray" cx="62%" cy="20%" r="55%">
-            <stop offset="0%"   stopColor="#e8c060" stopOpacity=".12"/>
-            <stop offset="60%"  stopColor="#c09040" stopOpacity=".04"/>
-            <stop offset="100%" stopColor="transparent" stopOpacity="0"/>
-          </radialGradient>
-          {/* Fog layers */}
-          <linearGradient id="fogBase" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#d0c8f0" stopOpacity="0"/>
-            <stop offset="100%" stopColor="#d0c8f0" stopOpacity=".14"/>
-          </linearGradient>
-          {/* Window glow filter */}
-          <filter id="winGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="2.5" result="blur"/>
-            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-          <filter id="softBlur" x="-10%" y="-10%" width="120%" height="120%">
-            <feGaussianBlur stdDeviation="1.5"/>
-          </filter>
-          <filter id="castleFilter" x="-5%" y="-5%" width="110%" height="110%">
-            <feGaussianBlur stdDeviation="0.4" result="blur"/>
-            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-        </defs>
-
-        {/* Sky */}
-        <rect width="1440" height="900" fill="url(#sky)"/>
-        {/* Atmospheric sun ray (top right, subtle) */}
-        <rect width="1440" height="900" fill="url(#sunray)" opacity=".6"/>
-
-        {/* Stars — tiny points */}
-        {[
-          [120,60],[200,40],[350,80],[80,110],[450,30],[600,55],[750,35],[900,70],[1050,45],[1200,80],[1380,50],
-          [160,145],[310,120],[500,130],[680,100],[850,125],[1100,110],[1320,140],[1420,90],
-          [240,190],[420,170],[560,200],[720,165],[960,180],[1160,195],[1290,160],
-        ].map(([x,y],i)=>(
-          <circle key={i} cx={x} cy={y} r={.8+Math.random()} fill="white" opacity={.2+i%5*.07}
-            style={{ animation:`breathe ${2+i%4}s ${i*.3}s ease-in-out infinite` }}/>
-        ))}
-
-        {/* Castle ambient aura */}
-        <ellipse cx="720" cy="620" rx="680" ry="180" fill="url(#castleAura)"/>
-
-        {/* ── FAR MOUNTAINS (deepest layer) ── */}
-        <path d="M0,520 L100,420 L180,470 L280,380 L380,440 L480,360 L580,420 L680,350 L780,410 L880,355 L980,415 L1080,360 L1180,415 L1280,370 L1380,430 L1440,400 L1440,900 L0,900Z"
-          fill="#0c0a18" opacity=".9"/>
-        <path d="M0,560 L120,480 L240,520 L360,460 L480,510 L600,455 L720,500 L840,452 L960,498 L1080,455 L1200,498 L1320,462 L1440,492 L1440,900 L0,900Z"
-          fill="#0e0c1c" opacity=".95"/>
-
-        {/* ── VIADUCT / BRIDGE (left) ── */}
-        <rect x="60" y="540" width="220" height="20" fill="#12101e" rx="2"/>
-        {[75,100,125,150,175,200,225,250].map((x,i)=>(
-          <rect key={i} x={x} y="528" width="14" height="34" fill="#100e1c" rx="1"/>
-        ))}
-        {[82,107,132,157,182,207,232].map((x,i)=>(
-          <path key={i} d={`M${x},542 Q${x+8},555 ${x+16},542`} fill="#0a0812"/>
-        ))}
-        {/* Viaduct side detail */}
-        <rect x="60" y="540" width="220" height="3" fill="#1e1a32" opacity=".8"/>
-
-        {/* ── LEFT WING BUILDINGS ── */}
-        {/* Far left small tower */}
-        <rect x="160" y="390" width="40" height="200" fill="url(#stoneDark)" rx="1"/>
-        <polygon points="140,390 180,320 220,390" fill="#12101e"/>
-        <line x1="180" y1="320" x2="180" y2="295" stroke="#3a2a10" strokeWidth="2"/>
-        <polygon points="180,295 195,305 180,315" fill="#8b1a1a" opacity=".8"/>
-        {/* Small windows */}
-        {[[168,420],[168,455],[168,490]].map(([x,y],i)=>(
-          <rect key={i} x={x} y={y} width={8} height={12} rx={4} fill="url(#winWarm)" filter="url(#winGlow)" opacity={.5+i*.1}/>
-        ))}
-        {/* Left main wing */}
-        <rect x="220" y="440" width="100" height="190" fill="url(#stoneA)" rx="1"/>
-        {[0,1,2,3,4,5,6].map(i=><rect key={i} x={220+i*16} y="432" width="10" height="14" rx="1" fill="#0e0c1a"/>)}
-        {[[232,465],[260,465],[288,465],[232,500],[260,500],[288,500]].map(([x,y],i)=>(
-          <rect key={i} x={x} y={y} width={9} height={13} rx={4.5} fill="url(#winWarm)" filter="url(#winGlow)" opacity={.45+i*.04}/>
-        ))}
-
-        {/* Left main tower */}
-        <rect x="330" y="310" width="55" height="330" fill="url(#stoneB)" rx="1"/>
-        {[0,1,2,3].map(i=><rect key={i} x={328+i*16} y="300" width="11" height="16" rx="1" fill="#0c0a18"/>)}
-        <polygon points="308,310 357,230 406,310" fill="url(#towerCap)"/>
-        <line x1="357" y1="230" x2="357" y2="205" stroke="#3a2a10" strokeWidth="2"/>
-        <polygon points="357,205 375,215 357,225" fill="#1a2a6b" opacity=".9"/>
-        {[[340,338],[362,338],[340,375],[362,375],[340,412],[362,412],[340,449],[362,449]].map(([x,y],i)=>(
-          <rect key={i} x={x} y={y} width={9} height={13} rx={4.5} fill="url(#winWarm)" filter="url(#winGlow)" opacity={.5+i*.02}/>
-        ))}
-        {/* Stone texture lines */}
-        {[350,385,420,455,490].map((y,i)=>(
-          <line key={i} x1="330" y1={y} x2="385" y2={y} stroke="#ffffff" strokeWidth=".4" opacity=".04"/>
-        ))}
-
-        {/* ── CENTRAL GRAND SECTION ── */}
-        {/* Main castle body */}
-        <rect x="385" y="380" width="670" height="290" fill="url(#stoneA)" rx="1"/>
-        {/* Battlements */}
-        {Array.from({length:34},(_,i)=>(
-          <rect key={i} x={385+i*20} y="368" width="12" height="18" rx="1" fill="#0e0c1a"/>
-        ))}
-        {/* Body windows — rows */}
-        {[
-          [405,408],[435,408],[465,408],[495,408],[525,408],[555,408],[585,408],[615,408],[645,408],[675,408],[705,408],[735,408],[765,408],[795,408],[825,408],[855,408],[885,408],[915,408],[945,408],[975,408],[1005,408],[1035,408],
-          [405,450],[455,450],[505,450],[555,450],[605,450],[655,450],[705,450],[755,450],[805,450],[855,450],[905,450],[955,450],[1005,450],[1035,450],
-          [420,492],[480,492],[540,492],[600,492],[660,492],[720,492],[780,492],[840,492],[900,492],[960,492],[1020,492],
-          [435,534],[510,534],[585,534],[660,534],[735,534],[810,534],[885,534],[960,534],
-        ].map(([x,y],i)=>(
-          <rect key={i} x={x} y={y} width={10} height={14} rx={5}
-            fill={i%3===0?"url(#winWarm)":i%3===1?"url(#winCool)":"url(#winWarm)"}
-            filter="url(#winGlow)"
-            opacity={.38+((i*7)%9)*.05}
-          />
-        ))}
-
-        {/* GRAND CENTRAL TOWER */}
-        <rect x="668" y="195" width="104" height="340" fill="url(#stoneB)" rx="1"/>
-        {Array.from({length:8},(_,i)=>(
-          <rect key={i} x={666+i*14} y="182" width="10" height="18" rx="1" fill="#0c0a18"/>
-        ))}
-        <polygon points="645,195 720,105 795,195" fill="url(#towerCap)"/>
-        <line x1="720" y1="105" x2="720" y2="78" stroke="#3a2a10" strokeWidth="2.5"/>
-        <polygon points="720,78 742,90 720,102" fill="#1a2a6b" opacity=".9"/>
-        {/* Grand tower rose window */}
-        <circle cx="720" cy="238" r="18" fill="none" stroke="rgba(201,162,86,.25)" strokeWidth="1"/>
-        <circle cx="720" cy="238" r="12" fill="#d08020" opacity=".18" filter="url(#winGlow)"/>
-        <circle cx="720" cy="238" r="6"  fill="#e09030" opacity=".25" filter="url(#winGlow)"/>
-        {[0,45,90,135].map((a,i)=>(
-          <line key={i}
-            x1={720+Math.cos(a*Math.PI/180)*6} y1={238+Math.sin(a*Math.PI/180)*6}
-            x2={720+Math.cos(a*Math.PI/180)*16} y2={238+Math.sin(a*Math.PI/180)*16}
-            stroke="rgba(201,162,86,.2)" strokeWidth=".8"/>
-        ))}
-        {/* Grand tower windows */}
-        {[[685,270],[715,270],[685,310],[715,310],[685,350],[715,350],[685,390],[715,390],[685,430],[715,430],[685,470],[715,470]].map(([x,y],i)=>(
-          <rect key={i} x={x} y={y} width={11} height={15} rx={5.5}
-            fill={i%2===0?"url(#winWarm)":"url(#winCool)"} filter="url(#winGlow)" opacity={.55+i*.02}/>
-        ))}
-        {/* Grand tower stone texture */}
-        {[240,280,320,360,400,440,480].map((y,i)=>(
-          <line key={i} x1="668" y1={y} x2="772" y2={y} stroke="#fff" strokeWidth=".35" opacity=".04"/>
-        ))}
-
-        {/* Left of grand tower — secondary tower */}
-        <rect x="540" y="260" width="70" height="300" fill="url(#stoneA)" rx="1"/>
-        {Array.from({length:5},(_,i)=><rect key={i} x={538+i*15} y="250" width="10" height="15" rx="1" fill="#0c0a18"/>)}
-        <polygon points="522,260 575,188 628,260" fill="url(#towerCap)"/>
-        <line x1="575" y1="188" x2="575" y2="165" stroke="#3a2a10" strokeWidth="2"/>
-        <polygon points="575,165 590,174 575,183" fill="#8b1a1a" opacity=".8"/>
-        {[[550,285],[568,285],[550,320],[568,320],[550,355],[568,355],[550,390],[568,390]].map(([x,y],i)=>(
-          <rect key={i} x={x} y={y} width={9} height={13} rx={4.5} fill="url(#winWarm)" filter="url(#winGlow)" opacity={.48+i*.02}/>
-        ))}
-
-        {/* Right of grand tower — secondary tower */}
-        <rect x="830" y="265" width="70" height="300" fill="url(#stoneA)" rx="1"/>
-        {Array.from({length:5},(_,i)=><rect key={i} x={828+i*15} y="255" width="10" height="14" rx="1" fill="#0c0a18"/>)}
-        <polygon points="812,265 865,190 918,265" fill="url(#towerCap)"/>
-        <line x1="865" y1="190" x2="865" y2="165" stroke="#3a2a10" strokeWidth="2"/>
-        <polygon points="865,165 880,175 865,185" fill="#2a6b1a" opacity=".8"/>
-        {[[840,290],[858,290],[840,325],[858,325],[840,360],[858,360],[840,395],[858,395]].map(([x,y],i)=>(
-          <rect key={i} x={x} y={y} width={9} height={13} rx={4.5} fill="url(#winWarm)" filter="url(#winGlow)" opacity={.48+i*.02}/>
-        ))}
-
-        {/* ── RIGHT WING ── */}
-        <rect x="1055" y="420" width="130" height="250" fill="url(#stoneA)" rx="1"/>
-        {Array.from({length:8},(_,i)=><rect key={i} x={1053+i*18} y="410" width="11" height="14" rx="1" fill="#0c0a18"/>)}
-        {[[1070,448],[1100,448],[1130,448],[1070,485],[1100,485],[1130,485],[1070,522],[1100,522],[1130,522]].map(([x,y],i)=>(
-          <rect key={i} x={x} y={y} width={9} height={13} rx={4.5} fill="url(#winWarm)" filter="url(#winGlow)" opacity={.42+i*.04}/>
-        ))}
-
-        {/* Astronomy Tower */}
-        <rect x="1100" y="265" width="44" height="390" fill="url(#stoneDark)" rx="1"/>
-        {[1098,1110,1122,1134].map((x,i)=><rect key={i} x={x} y="254" width="11" height="16" rx="1" fill="#0c0a18"/>)}
-        <polygon points="1082,265 1122,175 1162,265" fill="url(#towerCap)"/>
-        <line x1="1122" y1="175" x2="1122" y2="148" stroke="#3a2a10" strokeWidth="2"/>
-        <polygon points="1122,148 1140,158 1122,168" fill="#8b1a1a" opacity=".85"/>
-        {[[1107,295],[1122,295],[1107,330],[1122,330],[1107,365],[1122,365],[1107,400],[1122,400],[1107,435],[1122,435],[1107,470],[1122,470],[1107,505],[1122,505],[1107,540],[1122,540]].map(([x,y],i)=>(
-          <rect key={i} x={x} y={y} width={8} height={11} rx={4}
-            fill={i%3===0?"url(#winCool)":"url(#winWarm)"} filter="url(#winGlow)" opacity={.5+i*.01}/>
-        ))}
-
-        {/* Far right tower */}
-        <rect x="1230" y="370" width="36" height="280" fill="url(#stoneDark)" rx="1"/>
-        {[1228,1238,1248].map((x,i)=><rect key={i} x={x} y="360" width="10" height="14" rx="1" fill="#0c0a18"/>)}
-        <polygon points="1214,370 1248,308 1282,370" fill="url(#towerCap)"/>
-        {[[1234,395],[1248,395],[1234,428],[1248,428],[1234,461],[1248,461]].map(([x,y],i)=>(
-          <rect key={i} x={x} y={y} width={8} height={11} rx={4} fill="url(#winWarm)" filter="url(#winGlow)" opacity={.45+i*.04}/>
-        ))}
-
-        {/* ── BLACK LAKE — reflective, moody ── */}
-        <ellipse cx="720" cy="800" rx="720" ry="80" fill="#060410" opacity=".95"/>
-        <ellipse cx="720" cy="795" rx="580" ry="55" fill="#080618" opacity=".8"/>
-        {/* Lake surface shimmer */}
-        <ellipse cx="720" cy="790" rx="450" ry="28" fill="none" stroke="rgba(180,175,220,.06)" strokeWidth="1"/>
-        <ellipse cx="720" cy="788" rx="300" ry="18" fill="none" stroke="rgba(201,162,86,.05)" strokeWidth=".8"/>
-        {/* Window reflections on lake */}
-        {[[580,802],[620,806],[660,808],[700,804],[740,804],[780,806],[820,808],[860,804]].map(([x,y],i)=>(
-          <ellipse key={i} cx={x} cy={y} rx={2.5} ry={1.2} fill="#c9a040" opacity={.08+i*.005}/>
-        ))}
-        {/* Lake dark base */}
-        <rect x="0" y="820" width="1440" height="80" fill="#050408"/>
-
-        {/* ── FOG / MIST LAYERS (front, thick) ── */}
-        {/* Base ground mist */}
-        <ellipse cx="720" cy="760" rx="900" ry="140" fill="#c8c0e8" opacity=".09"
-          style={{ animation:"fogDrift 22s ease-in-out infinite alternate", transformOrigin:"720px 760px" }}/>
-        <ellipse cx="720" cy="740" rx="750" ry="100" fill="#d0c8f0" opacity=".07"
-          style={{ animation:"fogDrift2 18s ease-in-out infinite alternate", transformOrigin:"720px 740px" }}/>
-        <ellipse cx="400" cy="700" rx="500" ry="80" fill="#c8c0e8" opacity=".08"
-          style={{ animation:"fogDrift 28s ease-in-out infinite alternate", transformOrigin:"400px 700px" }}/>
-        <ellipse cx="1100" cy="710" rx="480" ry="75" fill="#d0c8f8" opacity=".07"
-          style={{ animation:"fogDrift2 24s ease-in-out infinite alternate", transformOrigin:"1100px 710px" }}/>
-        {/* Mid-castle mist */}
-        <ellipse cx="720" cy="620" rx="800" ry="90" fill="#b8b0d8" opacity=".06"
-          style={{ animation:"fogDrift 32s ease-in-out infinite alternate" }}/>
-        {/* Central mist radiating */}
-        <ellipse cx="720" cy="680" rx="900" ry="100" fill="url(#mistCenter)"/>
-
-        {/* ── FORBIDDEN FOREST (left) ── silhouetted, layered ── */}
-        <path d="M0,680 L0,480 L22,440 L40,465 L60,418 L78,448 L96,410 L115,445 L132,415 L150,450 L168,422 L185,460 L202,432 L218,468 L234,440 L248,478 L262,455 L278,490 L290,680Z"
-          fill="#06040c" opacity=".98"/>
-        <path d="M0,700 L0,508 L18,475 L34,498 L50,460 L66,485 L82,452 L98,478 L114,448 L130,472 L146,445 L162,470 L178,450 L194,478 L210,460 L226,488 L240,470 L255,498 L268,700Z"
-          fill="#050309" opacity="1"/>
-        {/* Forest depth — even darker front layer */}
-        <path d="M0,720 L0,540 L12,518 L24,535 L38,510 L52,530 L66,508 L80,528 L95,512 L108,534 L122,515 L138,540 L152,520 L165,720Z"
-          fill="#030207" opacity="1"/>
-
-        {/* ── FORBIDDEN FOREST (right) ── */}
-        <path d="M1440,680 L1440,480 L1418,440 L1400,465 L1380,418 L1362,448 L1344,410 L1325,445 L1308,415 L1290,450 L1272,422 L1255,460 L1238,432 L1222,468 L1206,440 L1192,478 L1178,455 L1162,490 L1150,680Z"
-          fill="#06040c" opacity=".98"/>
-        <path d="M1440,700 L1440,508 L1422,475 L1406,498 L1390,460 L1374,485 L1358,452 L1342,478 L1326,448 L1310,472 L1294,445 L1278,470 L1262,450 L1246,478 L1230,460 L1214,488 L1200,470 L1185,498 L1172,700Z"
-          fill="#050309" opacity="1"/>
-        <path d="M1440,720 L1440,540 L1428,518 L1416,535 L1402,510 L1388,530 L1374,508 L1360,528 L1345,512 L1332,534 L1318,515 L1302,540 L1288,520 L1275,720Z"
-          fill="#030207" opacity="1"/>
-
-        {/* ── ATMOSPHERIC LIGHT RAYS (subtle, top right) ── */}
-        {[0,1,2,3].map(i=>(
-          <line key={i}
-            x1={1050+i*40} y1={0}
-            x2={480+i*30}  y2={900}
-            stroke="rgba(220,190,100,.025)"
-            strokeWidth={60+i*20}
-            style={{ animation:`lightRay ${6+i*2}s ${i*1.5}s ease-in-out infinite` }}
-          />
-        ))}
-
-        {/* Ground dark fade */}
-        <rect x="0" y="840" width="1440" height="60" fill="#030207"/>
-        {/* Vignette edges */}
-        <rect x="0" y="0" width="140" height="900" fill="url(#leftVig)" opacity=".6"/>
-        <rect x="1300" y="0" width="140" height="900" fill="url(#rightVig)" opacity=".6"/>
-        <defs>
-          <linearGradient id="leftVig"  x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#060409" stopOpacity="1"/><stop offset="100%" stopColor="transparent" stopOpacity="0"/></linearGradient>
-          <linearGradient id="rightVig" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="transparent" stopOpacity="0"/><stop offset="100%" stopColor="#060409" stopOpacity="1"/></linearGradient>
-        </defs>
-        {/* Top vignette */}
-        <rect x="0" y="0" width="1440" height="80">
-          <animate attributeName="opacity" values=".8;.9;.8" dur="8s" repeatCount="indefinite"/>
-        </rect>
-        <defs>
-          <linearGradient id="topVig" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#060409" stopOpacity="1"/><stop offset="100%" stopColor="transparent" stopOpacity="0"/></linearGradient>
-        </defs>
-        <rect x="0" y="0" width="1440" height="80" fill="url(#topVig)"/>
-      </svg>
-
-      {/* Lightning flash layer */}
-      <div style={{ position:"absolute", inset:0, background:"rgba(180,200,255,.05)", animation:"lightning 9s infinite", pointerEvents:"none" }}/>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   FOG OVERLAY — layered CSS fog bands
-═══════════════════════════════════════════════════ */
-export function FogOverlay() {
-  return (
-    <div style={{ position:"fixed", inset:0, pointerEvents:"none", zIndex:3, overflow:"hidden" }}>
+    <div style={{ position:"fixed",inset:0,zIndex:0,overflow:"hidden",pointerEvents:"none" }}>
+      {/* Base sky — deep Hogwarts Legacy navy */}
+      <div style={{ position:"absolute",inset:0,background:"linear-gradient(192deg,#020509 0%,#050a1a 20%,#08122c 46%,#060e20 72%,#03060d 100%)" }}/>
+      {/* Atmospheric sky bloom */}
+      <div style={{ position:"absolute",top:0,left:"20%",right:"20%",height:"50%",background:"radial-gradient(ellipse,rgba(28,58,130,.16) 0%,transparent 72%)" }}/>
+      <div style={{ position:"absolute",top:"4%",left:"30%",right:"30%",height:"35%",background:"radial-gradient(ellipse,rgba(55,95,180,.1) 0%,transparent 66%)" }}/>
+      {/* God rays */}
       {[
-        { bottom:"0%",   h:"45%", op:.7,  dur:"20s", del:"0s",   color:"rgba(140,132,185,.1)" },
-        { bottom:"12%",  h:"30%", op:.5,  dur:"26s", del:"-8s",  color:"rgba(160,152,205,.08)" },
-        { bottom:"25%",  h:"22%", op:.35, dur:"32s", del:"-15s", color:"rgba(150,145,195,.06)" },
-        { bottom:"40%",  h:"16%", op:.2,  dur:"38s", del:"-22s", color:"rgba(140,135,185,.04)" },
-      ].map((f,i)=>(
+        { left:"43%", width:"9%",  opacity:.16, rotate:"-7deg",  delay:"0s",   blur:24 },
+        { left:"48%", width:"6%",  opacity:.25, rotate:"-1deg",  delay:".5s",  blur:17 },
+        { left:"52%", width:"8%",  opacity:.18, rotate:"6deg",   delay:"1s",   blur:22 },
+        { left:"38%", width:"5%",  opacity:.1,  rotate:"-15deg", delay:"1.5s", blur:26 },
+        { left:"60%", width:"4%",  opacity:.08, rotate:"12deg",  delay:"2s",   blur:28 },
+      ].map((r,i)=>(
         <div key={i} style={{
-          position:"absolute", left:"-8%", right:"-8%", bottom:f.bottom, height:f.h,
-          background:`radial-gradient(ellipse at 50% 100%,${f.color} 0%,transparent 70%)`,
-          opacity:f.op, filter:"blur(24px)",
-          animation:`${i%2===0?"fogDrift":"fogDrift2"} ${f.dur} ${f.del} ease-in-out infinite alternate`,
+          position:"absolute",top:"-8%",left:r.left,
+          width:r.width,height:"80%",
+          background:"linear-gradient(180deg,rgba(215,235,255,.92) 0%,rgba(195,218,252,.38) 28%,rgba(175,205,245,.14) 58%,transparent 100%)",
+          transform:`rotate(${r.rotate})`,transformOrigin:"top center",
+          opacity:r.opacity,filter:`blur(${r.blur}px)`,
+          animation:`godRayPulse ${5+i}s ${r.delay} ease-in-out infinite`,
         }}/>
       ))}
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   DECORATIVE RUNE RING
-═══════════════════════════════════════════════════ */
-export function RuneRing({ size = 120 }) {
-  const RUNES = "ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗ";
-  return (
-    <div style={{ position:"relative", width:size, height:size, flexShrink:0 }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}
-        style={{ position:"absolute", inset:0, animation:"runeRotate 28s linear infinite" }}>
-        <circle cx={size/2} cy={size/2} r={size/2-4} fill="none" stroke="rgba(201,162,86,.14)" strokeWidth="1"/>
-        {Array.from({length:16},(_,i)=>{
-          const a = (i/16)*Math.PI*2;
-          const r = size/2-10;
-          return (
-            <text key={i}
-              x={size/2 + Math.cos(a)*r} y={size/2 + Math.sin(a)*r}
-              textAnchor="middle" dominantBaseline="middle"
-              fill="rgba(201,162,86,.35)" fontSize={size/14}
-              fontFamily="serif"
-              transform={`rotate(${i*(360/16)},${size/2+Math.cos(a)*r},${size/2+Math.sin(a)*r})`}
-            >{RUNES[i%RUNES.length]}</text>
-          );
-        })}
-        <circle cx={size/2} cy={size/2} r={size/2-20} fill="none" stroke="rgba(201,162,86,.07)" strokeWidth=".8"/>
+      {/* Mountains — 3 layers */}
+      <svg style={{ position:"absolute",bottom:"31%",left:0,right:0,width:"100%",pointerEvents:"none" }} viewBox="0 0 1440 200" preserveAspectRatio="xMidYMax meet">
+        <path d="M0,200 L0,126 Q110,66 210,100 Q310,135 410,68 Q510,8 620,56 Q730,104 820,48 Q910,0 1020,44 Q1130,90 1230,52 Q1335,18 1440,70 L1440,200Z" fill="rgba(16,26,52,.42)"/>
       </svg>
-      <div style={{ position:"absolute", inset:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
-        <span style={{ color:T.gold, fontSize:size*.32, lineHeight:1, filter:`drop-shadow(0 0 ${size*.1}px rgba(201,162,86,.6))`, animation:"breathe 3s ease-in-out infinite" }}>⚡</span>
-      </div>
+      <svg style={{ position:"absolute",bottom:"23%",left:0,right:0,width:"100%" }} viewBox="0 0 1440 220" preserveAspectRatio="xMidYMax meet">
+        <path d="M0,220 L0,150 Q90,98 185,132 Q280,166 380,104 Q480,42 585,85 Q690,128 790,72 Q890,16 1000,64 Q1110,110 1200,68 Q1300,28 1440,88 L1440,220Z" fill="rgba(10,18,40,.58)"/>
+      </svg>
+      <svg style={{ position:"absolute",bottom:"16%",left:0,right:0,width:"100%" }} viewBox="0 0 1440 240" preserveAspectRatio="xMidYMax meet">
+        <path d="M0,240 L0,175 Q88,133 175,160 Q262,188 355,140 Q448,92 550,126 Q652,160 750,108 Q848,56 955,96 Q1062,136 1165,98 Q1268,62 1440,108 L1440,240Z" fill="rgba(7,13,30,.7)"/>
+      </svg>
+      {/* Fog layers */}
+      <div style={{ position:"absolute",bottom:"27%",left:"-8%",right:"-8%",height:"34%",background:"linear-gradient(180deg,transparent 0%,rgba(70,100,162,.13) 38%,rgba(90,128,186,.2) 66%,transparent 100%)",filter:"blur(30px)",animation:"mistDrift 22s ease-in-out infinite alternate",opacity:.9 }}/>
+      <div style={{ position:"absolute",bottom:"18%",left:"-10%",right:"-10%",height:"28%",background:"linear-gradient(180deg,transparent 0%,rgba(52,82,148,.15) 46%,rgba(70,108,168,.25) 72%,transparent 100%)",filter:"blur(36px)",animation:"mistDrift2 30s ease-in-out infinite alternate",opacity:.95 }}/>
+      <div style={{ position:"absolute",bottom:"8%",left:"-4%",right:"-4%",height:"22%",background:"linear-gradient(180deg,transparent 0%,rgba(40,65,128,.18) 56%,rgba(55,88,148,.28) 80%,transparent 100%)",filter:"blur(24px)",animation:"mistDrift 40s ease-in-out infinite alternate",opacity:1 }}/>
+      {/* Foreground treeline */}
+      <svg style={{ position:"absolute",bottom:0,left:0,right:0,width:"100%",pointerEvents:"none" }} viewBox="0 0 1440 180" preserveAspectRatio="xMidYMax meet">
+        <path d="M940,180 L940,108 L962,74 L986,108 L998,80 L1024,50 L1050,78 L1064,56 L1090,28 L1118,56 L1132,38 L1160,16 L1188,38 L1218,22 L1248,48 L1280,28 L1316,56 L1356,38 L1400,64 L1440,48 L1440,180Z" fill="#020407"/>
+        <path d="M0,180 L0,76 L26,52 L52,78 L80,44 L108,70 L136,36 L168,62 L196,40 L226,66 L256,30 L288,56 L320,36 L352,60 L384,46 L416,70 L448,52 L482,80 L500,180Z" fill="#020407"/>
+        <path d="M0,165 Q360,148 720,156 Q1080,146 1440,154 L1440,180 L0,180Z" fill="#010205"/>
+      </svg>
+      {/* Vignettes */}
+      <div style={{ position:"absolute",bottom:0,left:0,right:0,height:"18%",background:"linear-gradient(0deg,#04060d 0%,transparent 100%)" }}/>
+      <div style={{ position:"absolute",top:0,left:0,right:0,height:"22%",background:"linear-gradient(180deg,#04060d 0%,transparent 100%)" }}/>
+      <div style={{ position:"absolute",inset:0,background:"radial-gradient(ellipse at center,transparent 32%,rgba(2,3,8,.78) 100%)" }}/>
+      {/* Film grain */}
+      <div style={{ position:"absolute",inset:0,opacity:.025,backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.9'/%3E%3C/svg%3E")`,backgroundSize:"200px 200px" }}/>
+      <div style={{ position:"absolute",inset:0,animation:"lightning 9s infinite",background:"rgba(160,200,255,.04)" }}/>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════════
-   CINEMATIC CARD — glass morphism, dark luxury
-═══════════════════════════════════════════════════ */
-export function Card({ children, style={}, glow=false }) {
+/* ─── HOGWARTS CASTLE ───────────────────────────────── */
+export function HLCastle() {
+  return (
+    <svg
+      viewBox="0 0 1440 440"
+      style={{ position:"fixed",bottom:0,left:0,right:0,width:"100%",pointerEvents:"none",zIndex:3 }}
+      preserveAspectRatio="xMidYMax meet"
+    >
+      <defs>
+        <linearGradient id="cBody" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#1e1a2e" stopOpacity=".96"/>
+          <stop offset="100%" stopColor="#0d0b18" stopOpacity="1"/>
+        </linearGradient>
+        <linearGradient id="cDark" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#151024" stopOpacity="1"/>
+          <stop offset="100%" stopColor="#070510" stopOpacity="1"/>
+        </linearGradient>
+        <linearGradient id="cTower" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#221e32" stopOpacity=".93"/>
+          <stop offset="100%" stopColor="#0e0c1a" stopOpacity="1"/>
+        </linearGradient>
+        <radialGradient id="winGold" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#ffb040" stopOpacity=".95"/>
+          <stop offset="55%" stopColor="#e07820" stopOpacity=".5"/>
+          <stop offset="100%" stopColor="transparent" stopOpacity="0"/>
+        </radialGradient>
+        <radialGradient id="castleAura" cx="50%" cy="78%" r="52%">
+          <stop offset="0%" stopColor="#c9a84c" stopOpacity=".055"/>
+          <stop offset="100%" stopColor="transparent" stopOpacity="0"/>
+        </radialGradient>
+        <filter id="wg" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="3.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="sBlur"><feGaussianBlur stdDeviation="2.2"/></filter>
+      </defs>
+
+      <ellipse cx="720" cy="425" rx="580" ry="52" fill="url(#castleAura)"/>
+
+      {/* Far left tower */}
+      <rect x="115" y="196" width="34" height="234" fill="url(#cDark)"/>
+      {[115,124,133].map((x,i)=><rect key={i} x={x} y="183" width="7" height="16" rx="1.5" fill="#060410"/>)}
+      <path d="M112,196 L132,140 L152,196Z" fill="#1b1528"/>
+      <line x1="132" y1="140" x2="132" y2="116" stroke="#3a2e18" strokeWidth="2"/>
+      <polygon points="132,116 149,125 132,134" fill="#8b1a1a"/>
+      {[[119,224],[119,252],[119,280]].map(([x,y],i)=>(
+        <rect key={i} x={x} y={y} width={9} height={13} rx={4.5} fill="url(#winGold)" opacity={.45} filter="url(#wg)"/>
+      ))}
+
+      {/* Left main tower */}
+      <rect x="190" y="140" width="52" height="290" fill="url(#cBody)"/>
+      {[190,201,212,223,234].map((x,i)=><rect key={i} x={x} y="127" width="8" height="17" rx="2" fill="#0c0a18"/>)}
+      <path d="M187,140 L216,74 L245,140Z" fill="#1e1a30"/>
+      <line x1="216" y1="74" x2="216" y2="48" stroke="#3a2e18" strokeWidth="2"/>
+      <polygon points="216,48 236,58 216,68" fill="#1a3860"/>
+      {[[196,168],[218,165],[196,198],[218,195],[196,228],[218,225],[196,258],[218,255]].map(([x,y],i)=>(
+        <rect key={i} x={x} y={y} width={12} height={16} rx={6} fill="url(#winGold)" opacity={.48+i*.02} filter="url(#wg)"/>
+      ))}
+
+      {/* Left wing */}
+      <rect x="242" y="218" width="172" height="212" fill="url(#cBody)"/>
+      {Array.from({length:14},(_,i)=><rect key={i} x={242+i*13} y="205" width="8" height="16" rx="1.5" fill="#0c0a18"/>)}
+      {[240,268,298,328,358,388].map((y,i)=>(
+        <line key={i} x1="242" y1={y} x2="414" y2={y} stroke="rgba(255,255,255,.02)" strokeWidth=".5"/>
+      ))}
+      {[[254,240],[282,240],[310,240],[338,240],[366,240],[392,240],
+        [254,275],[282,275],[310,275],[338,275],[366,275],
+        [254,310],[310,310],[366,310]].map(([x,y],i)=>(
+        <rect key={i} x={x} y={y} width={12} height={16} rx={6} fill="url(#winGold)" opacity={.4+i*.012} filter="url(#wg)"/>
+      ))}
+
+      {/* Viaduct */}
+      <rect x="95" y="270" width="100" height="22" fill="#0c0a1a"/>
+      {[104,120,136,152,168].map((x,i)=>(<rect key={i} x={x} y="258" width="13" height="38" fill="#0a0818" rx="1"/>))}
+      {[108,124,140,156].map((x,i)=>(<path key={i} d={`M${x},270 Q${x+9},288 ${x+18},270`} fill="#060412"/>))}
+
+      {/* Grand central tower */}
+      <rect x="570" y="46" width="108" height="374" fill="url(#cBody)"/>
+      {Array.from({length:10},(_,i)=><rect key={i} x={568+i*12} y="30" width="9" height="20" rx="2" fill="#0c0a18"/>)}
+      <path d="M566,46 L624,−4 L682,46Z" fill="#201c34"/>
+      <path d="M566,46 L624,0 L682,46Z" fill="#201c34"/>
+      <line x1="624" y1="0" x2="624" y2="-22" stroke="#4a3a18" strokeWidth="2.5"/>
+      <polygon points="624,-22 645,-12 624,-2" fill="#1a3860"/>
+      {[82,116,150,184,218,252,286,320].map((y,i)=>(
+        <line key={i} x1="570" y1={y} x2="678" y2={y} stroke="rgba(255,255,255,.02)" strokeWidth=".5"/>
+      ))}
+      {[[578,76],[600,76],[622,76],[578,116],[600,116],[622,116],
+        [578,156],[600,156],[622,156],[578,196],[600,196],[622,196],
+        [578,236],[600,236],[622,236],[578,276],[600,276],[622,276],
+        [578,316],[600,316],[622,316]].map(([x,y],i)=>(
+        <rect key={i} x={x} y={y} width={14} height={20} rx={7} fill="url(#winGold)" opacity={.5+i*.015} filter="url(#wg)"/>
+      ))}
+      {/* Rose window */}
+      <circle cx="624" cy="98" r="22" fill="none" stroke="rgba(201,168,76,.2)" strokeWidth="1.3"/>
+      <circle cx="624" cy="98" r="13" fill="rgba(255,148,30,.15)" filter="url(#sBlur)"/>
+      <circle cx="624" cy="98" r="6" fill="rgba(255,190,50,.18)" filter="url(#sBlur)"/>
+      {[0,45,90,135].map((a,i)=>(
+        <line key={i}
+          x1={624+Math.cos(a*Math.PI/180)*6} y1={98+Math.sin(a*Math.PI/180)*6}
+          x2={624+Math.cos(a*Math.PI/180)*19} y2={98+Math.sin(a*Math.PI/180)*19}
+          stroke="rgba(201,168,76,.26)" strokeWidth="1"/>
+      ))}
+
+      {/* Main castle body */}
+      <rect x="414" y="170" width="420" height="260" fill="url(#cBody)"/>
+      {Array.from({length:34},(_,i)=><rect key={i} x={412+i*13} y="155" width="8" height="18" rx="1.5" fill="#0c0a18"/>)}
+      {[205,238,270,304,336,370].map((y,i)=>(
+        <line key={i} x1="414" y1={y} x2="834" y2={y} stroke="rgba(255,255,255,.018)" strokeWidth=".5"/>
+      ))}
+      {[
+        [428,196],[452,196],[476,196],[500,196],[524,196],[572,196],[620,196],[668,196],[716,196],[764,196],[812,196],
+        [428,232],[476,232],[524,232],[572,232],[620,232],[668,232],[716,232],[764,232],[812,232],
+        [428,268],[484,268],[572,268],[620,268],[668,268],[716,268],[764,268],[812,268],
+        [428,304],[512,304],[620,304],[716,304],[800,304],
+        [428,340],[572,340],[716,340],
+      ].map(([x,y],i)=>(
+        <rect key={i} x={x} y={y} width={12} height={16} rx={6} fill="url(#winGold)" opacity={.32+((i*7)%9)*.04} filter="url(#wg)"/>
+      ))}
+      {/* Great Hall arch window */}
+      <path d="M600,198 L600,244 Q624,264 648,244 L648,198Z" fill="url(#winGold)" opacity=".35" filter="url(#wg)"/>
+      <path d="M600,198 L600,244 Q624,264 648,244 L648,198Z" fill="none" stroke="rgba(201,168,76,.22)" strokeWidth="1.2"/>
+
+      {/* Right wing */}
+      <rect x="834" y="218" width="168" height="212" fill="url(#cBody)"/>
+      {Array.from({length:13},(_,i)=><rect key={i} x={832+i*14} y="204" width="8" height="17" rx="1.5" fill="#0c0a18"/>)}
+      {[[846,242],[870,242],[896,242],[924,242],[952,242],[978,242],
+        [846,276],[870,276],[896,276],[924,276],[952,276],
+        [846,308],[896,308],[952,308]].map(([x,y],i)=>(
+        <rect key={i} x={x} y={y} width={11} height={15} rx={5.5} fill="url(#winGold)" opacity={.42+i*.02} filter="url(#wg)"/>
+      ))}
+
+      {/* Astronomy tower */}
+      <rect x="978" y="84" width="44" height="346" fill="url(#cTower)"/>
+      {[978,990,1002,1014].map((x,i)=><rect key={i} x={x} y="70" width="8" height="18" rx="1.5" fill="#0c0a18"/>)}
+      <path d="M975,84 L1000,26 L1025,84Z" fill="#1e1a32"/>
+      <line x1="1000" y1="26" x2="1000" y2="2" stroke="#3a2e18" strokeWidth="2"/>
+      <polygon points="1000,2 1020,12 1000,22" fill="#8b1a1a"/>
+      {[[982,112],[998,112],[982,140],[998,140],[982,168],[998,168],
+        [982,196],[998,196],[982,224],[998,224],[982,252],[998,252]].map(([x,y],i)=>(
+        <rect key={i} x={x} y={y} width={9} height={13} rx={4.5} fill="url(#winGold)" opacity={.48} filter="url(#wg)"/>
+      ))}
+
+      {/* Far right tower */}
+      <rect x="1058" y="200" width="38" height="230" fill="url(#cDark)"/>
+      {[1058,1070,1082].map((x,i)=><rect key={i} x={x} y="186" width="7" height="17" rx="1.5" fill="#060410"/>)}
+      <path d="M1055,200 L1077,150 L1099,200Z" fill="#161228"/>
+      {[[1062,226],[1062,254],[1062,282]].map(([x,y],i)=>(
+        <rect key={i} x={x} y={y} width={9} height={13} rx={4.5} fill="url(#winGold)" opacity={.4} filter="url(#wg)"/>
+      ))}
+
+      {/* Connectors */}
+      <rect x="412" y="250" width="9" height="60" fill="#100e1c"/>
+      <rect x="834" y="258" width="9" height="54" fill="#100e1c"/>
+
+      {/* Forbidden forest left */}
+      <path d="M0,430 L0,216 L22,180 L42,214 L64,178 L88,212 L112,180 L138,214 L162,186 L186,220 L214,192 L240,226 L268,202 L294,232 L322,212 L350,435Z" fill="#030407"/>
+      <path d="M0,435 L0,234 L18,208 L36,238 L56,210 L76,240 L96,216 L118,246 L140,222 L164,252 L190,228 L218,258 L248,234 L278,262 L310,238 L350,435Z" fill="#020305"/>
+
+      {/* Forbidden forest right */}
+      <path d="M1440,430 L1440,218 L1418,182 L1396,216 L1372,180 L1348,214 L1324,182 L1300,216 L1276,184 L1252,220 L1226,196 L1200,230 L1174,204 L1146,236 L1118,216 L1090,435Z" fill="#030407"/>
+      <path d="M1440,435 L1440,236 L1420,210 L1400,240 L1378,212 L1356,242 L1332,218 L1308,248 L1282,224 L1256,254 L1228,230 L1200,260 L1170,236 L1140,264 L1108,240 L1090,435Z" fill="#020305"/>
+
+      {/* Black Lake */}
+      <ellipse cx="720" cy="430" rx="510" ry="22" fill="rgba(4,6,16,.92)"/>
+      <ellipse cx="720" cy="426" rx="370" ry="13" fill="rgba(8,14,34,.82)"/>
+      <ellipse cx="720" cy="422" rx="210" ry="7" fill="rgba(201,168,76,.038)"/>
+      <path d="M510,424 Q615,436 720,428 Q825,436 930,424" stroke="rgba(201,168,76,.048)" strokeWidth="1.8" fill="none"/>
+
+      {/* Ground */}
+      <rect x="0" y="422" width="1440" height="18" fill="#020408"/>
+    </svg>
+  );
+}
+
+/* ─── RUNE RING ──────────────────────────────────────── */
+export function RuneRing({ size = 100 }) {
+  const runes = "ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ";
+  return (
+    <div style={{ position:"relative",width:size,height:size,flexShrink:0 }}>
+      <div style={{ position:"absolute",inset:0,borderRadius:"50%",border:"1px solid rgba(201,168,76,.2)",animation:"runeRotate 24s linear infinite" }}>
+        {Array.from({length:12},(_,i)=>(
+          <span key={i} style={{ position:"absolute",left:"50%",top:"50%",transform:`rotate(${i*30}deg) translateY(-${size/2-9}px) translateX(-50%)`,color:"rgba(201,168,76,.35)",fontSize:size/12,fontFamily:"serif" }}>
+            {runes[i%runes.length]}
+          </span>
+        ))}
+      </div>
+      <div style={{ position:"absolute",inset:size*.14,borderRadius:"50%",border:"1px solid rgba(201,168,76,.09)",animation:"runeRotate 16s linear reverse infinite" }}/>
+      <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",color:"#c9a84c",fontSize:size*.34,lineHeight:1,filter:"drop-shadow(0 0 12px rgba(201,168,76,.58))",animation:"goldShimmer 3.5s ease-in-out infinite" }}>⚡</div>
+    </div>
+  );
+}
+
+/* ─── DIVIDER ───────────────────────────────────────── */
+export function Divider({ style = {} }) {
+  return (
+    <div style={{ display:"flex",alignItems:"center",gap:12,width:"100%",...style }}>
+      <div style={{ flex:1,height:"1px",background:"linear-gradient(90deg,transparent,rgba(201,168,76,.28))" }}/>
+      <span style={{ color:"rgba(201,168,76,.48)",fontSize:9,letterSpacing:2 }}>✦</span>
+      <div style={{ flex:1,height:"1px",background:"linear-gradient(90deg,rgba(201,168,76,.28),transparent)" }}/>
+    </div>
+  );
+}
+
+/* ─── CARD ──────────────────────────────────────────── */
+export function Card({ children, glow = false, style = {} }) {
   return (
     <div style={{
       width:"100%",
-      background:"linear-gradient(145deg,rgba(20,16,32,.96),rgba(14,12,24,.98))",
-      border:`1px solid ${glow?"rgba(201,162,86,.38)":"rgba(201,162,86,.14)"}`,
+      background:"linear-gradient(160deg,rgba(26,22,44,.97) 0%,rgba(15,13,28,.98) 65%,rgba(20,17,36,.97) 100%)",
+      border:`1px solid rgba(201,168,76,${glow?.42:.18})`,
       borderRadius:2,
-      padding:"26px 24px",
-      backdropFilter:"blur(20px)",
-      boxShadow: glow
-        ? "0 0 60px rgba(201,162,86,.1),0 30px 80px rgba(0,0,0,.7),inset 0 1px 0 rgba(201,162,86,.12)"
-        : "0 20px 60px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.04)",
-      animation: glow ? "borderPulse 4s ease-in-out infinite" : "none",
+      padding:"28px 26px",
       position:"relative",
       overflow:"hidden",
+      backdropFilter:"blur(18px)",
+      animation:glow?"cardGlow 5s ease-in-out infinite":"none",
+      boxShadow:"0 32px 80px rgba(0,0,0,.72),inset 0 0 40px rgba(0,0,0,.35)",
       ...style,
     }}>
-      <div style={{ position:"absolute",top:10,left:12,color:"rgba(201,162,86,.2)",fontSize:9,lineHeight:1,fontFamily:"serif" }}>✦</div>
-      <div style={{ position:"absolute",top:10,right:12,color:"rgba(201,162,86,.2)",fontSize:9,lineHeight:1,fontFamily:"serif" }}>✦</div>
-      <div style={{ position:"absolute",bottom:10,left:12,color:"rgba(201,162,86,.2)",fontSize:9,lineHeight:1,fontFamily:"serif" }}>✦</div>
-      <div style={{ position:"absolute",bottom:10,right:12,color:"rgba(201,162,86,.2)",fontSize:9,lineHeight:1,fontFamily:"serif" }}>✦</div>
-      {children}
+      <div style={{ position:"absolute",inset:0,opacity:.2,backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E")`,pointerEvents:"none",zIndex:0 }}/>
+      {[{top:8,left:10},{top:8,right:10},{bottom:8,left:10},{bottom:8,right:10}].map((pos,i)=>(
+        <span key={i} style={{ position:"absolute",color:"rgba(201,168,76,.2)",fontSize:10,...pos }}>✦</span>
+      ))}
+      <div style={{ position:"relative",zIndex:1 }}>{children}</div>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════════
-   GOLD RULE
-═══════════════════════════════════════════════════ */
-export function Rule({ style={} }) {
-  return (
-    <div style={{ display:"flex", alignItems:"center", gap:12, width:"100%", ...style }}>
-      <div style={{ flex:1, height:1, background:"linear-gradient(90deg,transparent,rgba(201,162,86,.28))" }}/>
-      <span style={{ color:"rgba(201,162,86,.4)", fontSize:9, fontFamily:"serif", flexShrink:0 }}>✦</span>
-      <div style={{ flex:1, height:1, background:"linear-gradient(90deg,rgba(201,162,86,.28),transparent)" }}/>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   SECTION HEADING
-═══════════════════════════════════════════════════ */
-export function Heading({ children, sub, eyebrow, size="clamp(1.5rem,5.5vw,2.4rem)", align="center" }) {
-  return (
-    <div style={{ textAlign:align }}>
-      {eyebrow && <p style={{ fontFamily:"'Cinzel',serif", fontSize:".58rem", letterSpacing:".55em", color:T.goldDm, marginBottom:12, textTransform:"uppercase" }}>{eyebrow}</p>}
-      <h2 className="glow" style={{ fontFamily:"'Cinzel',serif", fontSize:size, color:T.gold, letterSpacing:".06em", lineHeight:1.18, fontWeight:600, textShadow:"0 2px 4px rgba(0,0,0,.8)" }}>{children}</h2>
-      {sub && <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:"clamp(.95rem,3vw,1.15rem)", color:T.silver, letterSpacing:".1em", marginTop:10, fontStyle:"italic", opacity:.75 }}>{sub}</p>}
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   BUTTON
-═══════════════════════════════════════════════════ */
+/* ─── BUTTON ────────────────────────────────────────── */
 export function Btn({ children, onClick, variant="gold", disabled=false, style={} }) {
-  const V = {
-    gold:    { bg:"linear-gradient(135deg,rgba(30,22,8,.95),rgba(22,16,6,.95))", b:"rgba(201,162,86,.55)", c:T.gold,   sh:"rgba(201,162,86,.18)" },
-    crimson: { bg:"linear-gradient(135deg,rgba(28,8,8,.95),rgba(18,6,6,.95))",  b:"rgba(160,40,40,.6)",  c:"rgba(200,80,80,.9)", sh:"rgba(160,40,40,.2)" },
-    ghost:   { bg:"rgba(255,255,255,.03)", b:"rgba(255,255,255,.08)", c:"rgba(200,195,220,.5)", sh:"transparent" },
-    emerald: { bg:"linear-gradient(135deg,rgba(8,22,12,.95),rgba(6,16,8,.95))", b:"rgba(40,120,60,.6)", c:"rgba(80,180,100,.9)", sh:"rgba(40,120,60,.15)" },
-  };
-  const v = V[variant]||V.gold;
+  const styles = {
+    gold:    { bg:"linear-gradient(160deg,rgba(52,38,8,.96),rgba(32,22,4,.98))", bc:"rgba(201,168,76,.62)", tc:"#c9a84c", sh:"rgba(201,168,76,.12)" },
+    crimson: { bg:"linear-gradient(160deg,rgba(52,8,8,.96),rgba(32,4,4,.98))",   bc:"rgba(160,38,38,.66)", tc:"#d05050", sh:"rgba(160,50,50,.12)" },
+    ghost:   { bg:"rgba(255,255,255,.018)",                                        bc:"rgba(255,255,255,.09)",tc:"rgba(200,210,225,.52)", sh:"transparent" },
+    emerald: { bg:"linear-gradient(160deg,rgba(8,52,20,.96),rgba(4,32,12,.98))",  bc:"rgba(38,112,62,.66)", tc:"#50b070", sh:"rgba(50,120,70,.12)" },
+  }[variant] || {};
   return (
     <button onClick={onClick} disabled={disabled} style={{
-      padding:"15px 40px",
-      background: disabled?"rgba(255,255,255,.03)":v.bg,
-      border:`1px solid ${disabled?"rgba(255,255,255,.06)":v.b}`,
-      color: disabled?"rgba(200,195,220,.2)":v.c,
-      fontFamily:"'Cinzel',serif", fontSize:".82rem", letterSpacing:".2em",
+      padding:"15px 42px",
+      background:disabled?"rgba(255,255,255,.015)":styles.bg,
+      border:`1px solid ${disabled?"rgba(255,255,255,.05)":styles.bc}`,
+      color:disabled?"rgba(200,210,225,.14)":styles.tc,
+      fontFamily:"'Cinzel',serif", fontSize:".82rem", letterSpacing:".3em",
       cursor:disabled?"default":"pointer", borderRadius:2,
-      boxShadow:disabled?"none":`0 0 24px ${v.sh},inset 0 1px 0 rgba(255,255,255,.06)`,
+      boxShadow:disabled?"none":`0 0 32px ${styles.sh},inset 0 0 18px rgba(0,0,0,.48)`,
       transition:"all .4s cubic-bezier(.23,1,.32,1)",
+      animation:!disabled&&variant==="gold"?"buttonGlow 3.5s ease-in-out infinite":"none",
       ...style,
     }}>{children}</button>
   );
 }
 
-/* ═══════════════════════════════════════════════════
-   SPELL TRANSITION
-═══════════════════════════════════════════════════ */
-export function SpellTrans({ label="", onDone }) {
-  useEffect(()=>{ const t=setTimeout(onDone,2600); return()=>clearTimeout(t); },[]);
+/* ─── TITLE ─────────────────────────────────────────── */
+export function Title({ children, sub, eyebrow, size="clamp(1.4rem,5vw,2.2rem)" }) {
   return (
-    <div style={{ position:"fixed",inset:0,background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:999 }} className="fi">
+    <div style={{ textAlign:"center",width:"100%" }}>
+      {eyebrow&&<p style={{ fontFamily:"'Cinzel',serif",fontSize:".56rem",letterSpacing:".6em",color:"#7a6530",marginBottom:13,textTransform:"uppercase" }}>{eyebrow}</p>}
+      <h2 style={{ fontFamily:"'Cinzel',serif",fontWeight:700,fontSize:size,color:"#c9a84c",letterSpacing:".06em",lineHeight:1.16,textShadow:"0 0 65px rgba(201,168,76,.34),0 2px 4px rgba(0,0,0,.95)" }}>{children}</h2>
+      {sub&&<p style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:"clamp(.9rem,2.8vw,1.08rem)",color:"#c8d0de",letterSpacing:".14em",marginTop:10,fontStyle:"italic",opacity:.72 }}>{sub}</p>}
+    </div>
+  );
+}
+
+/* ─── CONFETTI ──────────────────────────────────────── */
+export function Confetti() {
+  const p=Array.from({length:60},(_,i)=>({id:i,left:`${Math.random()*100}%`,color:["#c9a84c","#8b2020","#1a3860","#2a6040","#b8bfcc","#7a6530"][i%6],size:`${4+Math.random()*8}px`,delay:`${Math.random()*2.5}s`,dur:`${3.5+Math.random()*2}s`,br:i%4===0?"50%":"1px"}));
+  return (
+    <div style={{ position:"fixed",inset:0,pointerEvents:"none",zIndex:990 }}>
+      {p.map(c=><div key={c.id} style={{ position:"absolute",top:"-20px",left:c.left,width:c.size,height:c.size,background:c.color,borderRadius:c.br,animation:`confettiF ${c.dur} ${c.delay} ease-in forwards`,boxShadow:`0 0 5px ${c.color}44` }}/>)}
+    </div>
+  );
+}
+
+/* ─── TRANSITION ────────────────────────────────────── */
+export function Transition({ label="", onDone }) {
+  useEffect(()=>{ const t=setTimeout(onDone,2800); return()=>clearTimeout(t); },[]);
+  return (
+    <div style={{ position:"fixed",inset:0,background:"#04060d",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:999 }} className="fi">
       <style>{G}</style>
-      <MagicDust count={50}/>
+      <MagicDust count={45}/>
       <div style={{ position:"relative",zIndex:10,textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:20 }}>
-        <RuneRing size={110}/>
-        <p style={{ fontFamily:"'Cinzel',serif",color:T.gold,fontSize:"clamp(.85rem,3.5vw,1.1rem)",letterSpacing:".4em",animation:"breathe 2s ease-in-out infinite" }}>{label}</p>
-        <Rule style={{ maxWidth:220 }}/>
-        <p style={{ fontFamily:"'Cormorant Garamond',serif",color:T.goldDm,fontSize:".9rem",letterSpacing:".15em",fontStyle:"italic" }}>The next chapter unfolds...</p>
+        <RuneRing size={95}/>
+        <div style={{ marginTop:14 }}>
+          <p style={{ fontFamily:"'Cinzel',serif",color:"#c9a84c",fontSize:"clamp(.82rem,3vw,1.1rem)",letterSpacing:".44em",animation:"breathe 2s ease-in-out infinite" }}>{label}</p>
+          <Divider style={{ marginTop:16,maxWidth:256 }}/>
+          <p style={{ fontFamily:"'Cormorant Garamond',serif",color:"#7a6530",fontSize:".9rem",letterSpacing:".16em",marginTop:12,fontStyle:"italic" }}>The next chapter unfolds...</p>
+        </div>
       </div>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════════
-   CONFETTI
-═══════════════════════════════════════════════════ */
-export function Confetti() {
-  const p=Array.from({length:55},(_,i)=>({ id:i,left:`${Math.random()*100}%`,color:["#c9a256","#8b1a1a","#1a4a2a","#e8c97a","#b8b8c8"][i%5],size:`${4+Math.random()*7}px`,delay:`${Math.random()*2}s`,dur:`${3+Math.random()*2}s`,br:i%4===0?"50%":"1px" }));
-  return <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:990}}>{p.map(c=><div key={c.id} style={{position:"absolute",top:"-30px",left:c.left,width:c.size,height:c.size,background:c.color,borderRadius:c.br,animation:`confettiFall ${c.dur} ${c.delay} ease-in forwards`,boxShadow:`0 0 4px ${c.color}55`}}/>)}</div>;
-}
-
-/* ═══════════════════════════════════════════════════
-   TYPEWRITER
-═══════════════════════════════════════════════════ */
-export function useTypewriter(text, speed=26, active=true) {
-  const [out,setOut] = useState("");
-  const [done,setDone] = useState(false);
+/* ─── TYPEWRITER ────────────────────────────────────── */
+export function useTypewriter(text,speed=26,active=true) {
+  const [out,setOut]=useState("");
+  const [done,setDone]=useState(false);
   useEffect(()=>{
     if(!active){setOut("");setDone(false);return;}
     setOut("");setDone(false);let i=0;
@@ -594,17 +475,15 @@ export function useTypewriter(text, speed=26, active=true) {
   return{out,done};
 }
 
-/* ═══════════════════════════════════════════════════
-   PAGE WRAPPER
-═══════════════════════════════════════════════════ */
-export function Page({ children, dust=true, fog=true }) {
+/* ─── PAGE WRAPPER ──────────────────────────────────── */
+export function Page({ children, castle=true, particles=true }) {
   return (
-    <div style={{ minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",alignItems:"center",overflowX:"hidden",overflowY:"auto",position:"relative",paddingBottom:220 }}>
+    <div style={{ minHeight:"100vh",background:"#04060d",display:"flex",flexDirection:"column",alignItems:"center",overflowX:"hidden",overflowY:"auto",position:"relative",paddingBottom:castle?300:72 }}>
       <style>{G}</style>
-      <CinematicScene/>
-      {dust && <MagicDust count={55}/>}
-      {fog  && <FogOverlay/>}
-      <div style={{ width:"100%",maxWidth:560,padding:"48px 22px 28px",display:"flex",flexDirection:"column",alignItems:"center",gap:26,position:"relative",zIndex:10 }}>
+      <CinematicBG/>
+      {particles&&<MagicDust count={45}/>}
+      {castle&&<HLCastle/>}
+      <div style={{ width:"100%",maxWidth:610,padding:"54px 24px 32px",display:"flex",flexDirection:"column",alignItems:"center",gap:28,position:"relative",zIndex:10 }}>
         {children}
       </div>
     </div>
