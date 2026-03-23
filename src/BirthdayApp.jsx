@@ -3,7 +3,7 @@ import SurprisePage from "./SurprisePage";
 
 // ─── TARGET: 25 March 2026, 00:00:00 IST (UTC+5:30) ───────────────────────
 // Stored as UTC epoch ms — not readable as a date string in source
-const _T = 1742841000000; // UTC ms for 2026-03-24T18:30:00Z = IST midnight 25th
+const _T = 1774377000000; // UTC ms for 2026-03-24T18:30:00Z = IST midnight 25th
 
 // ─── Multiple time sources ─────────────────────────────────────────────────
 // Fetches real server time from a public API to prevent client clock tampering
