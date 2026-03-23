@@ -1,111 +1,161 @@
 import { useState, useEffect } from "react";
+import { G, THEME, CinePage, RuneRing, MagicOrb, ParchmentCard, GoldDivider, CineBtn, CineTitle, CineConfetti, MagicParticles, FogLayers, AtmosphericLightning, CinematicCastle, useTypewriter } from "./HPCore";
 
 /* ══════════════════════════════════════════════════════════
-   GLOBALS
+   GAME DATA
 ══════════════════════════════════════════════════════════ */
-const G = `
-@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body,#root{width:100%;min-height:100vh;background:#050308;overflow-x:hidden;}
-::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:#080612;}::-webkit-scrollbar-thumb{background:#8b6914;border-radius:3px;}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeInLeft{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
-@keyframes starTwinkle{0%,100%{opacity:.15;transform:scale(1)}50%{opacity:.9;transform:scale(1.5)}}
-@keyframes goldGlow{0%,100%{text-shadow:0 0 10px rgba(212,175,55,.4)}50%{text-shadow:0 0 30px rgba(212,175,55,.9),0 0 60px rgba(212,175,55,.3)}}
-@keyframes wandPulse{0%,100%{filter:drop-shadow(0 0 4px #d4af37)}50%{filter:drop-shadow(0 0 16px #d4af37) drop-shadow(0 0 30px rgba(212,175,55,.5))}}
-@keyframes candleFlicker{0%,100%{opacity:1}50%{opacity:.7}}
-@keyframes heartbeat{0%,100%{transform:scale(1)}14%{transform:scale(1.08)}28%{transform:scale(1)}42%{transform:scale(1.05)}}
-@keyframes confettiFall{0%{transform:translateY(-10px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
-@keyframes runeReveal{from{opacity:0;transform:scale(0) rotate(-180deg)}to{opacity:1;transform:scale(1) rotate(0deg)}}
-@keyframes parchmentUnroll{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0% 0)}}
-@keyframes potionBubble{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-@keyframes mirrorGlow{0%,100%{box-shadow:0 0 20px rgba(100,180,255,.2)}50%{box-shadow:0 0 50px rgba(100,180,255,.5),0 0 100px rgba(100,180,255,.2)}}
-@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
-@keyframes stampIn{from{transform:scale(3) rotate(-12deg);opacity:0}to{transform:scale(1) rotate(-12deg);opacity:1}}
-.fi{animation:fadeIn .6s ease forwards}
-.fiu{animation:fadeInUp .7s ease forwards}
-.fil{animation:fadeInLeft .6s ease forwards}
-.goldGlow{animation:goldGlow 2.5s ease-in-out infinite}
-.wandPulse{animation:wandPulse 2s ease-in-out infinite}
-`;
+const PREMISE = `The Philosopher's Stone has vanished from the third-floor corridor.\nProfessor Dumbledore's enchantments were bypassed — perfectly.\nFive suspects remain within the castle walls.\nA storm gathers over the Forbidden Forest.\n\nYou are Detective Amritha.\nYou have until midnight.`;
 
-/* ── Stars ── */
-function Stars({ count = 50 }) {
-  const s = Array.from({ length: count }, (_, i) => ({ id: i, left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, size: 1 + Math.random() * 2, delay: `${Math.random() * 4}s`, dur: `${2 + Math.random() * 3}s` }));
-  return <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }}>{s.map(x => <div key={x.id} style={{ position: "absolute", left: x.left, top: x.top, width: x.size, height: x.size, background: "#fff", borderRadius: "50%", animation: `starTwinkle ${x.dur} ${x.delay} ease-in-out infinite`, boxShadow: `0 0 ${x.size * 2}px rgba(212,175,55,0.4)` }} />)}</div>;
-}
+const ROOMS = [
+  { id:"potions",  name:"Potions Dungeon",      icon:"🧪", desc:"Stone walls, cold vapour, shelves of motionless ingredients. A cauldron still radiates warmth.", clues:[
+    { id:"c1", text:"A smashed Boomslang skin vial — residue matches Polyjuice Potion. Someone was here in disguise.",         found:false, key:true  },
+    { id:"c2", text:"Overturned stool near Snape's private cabinet. The lock shows no force — someone had a key.",              found:false, key:false },
+    { id:"c3", text:"Monogrammed handkerchief: Q.Q. — found behind a warm cauldron. The ink on it is violet.",                  found:false, key:true  },
+  ]},
+  { id:"corridor", name:"Third-Floor Corridor", icon:"🚪", desc:"The door stands open. Fluffy is asleep. A melody still lingers in the air — refined, almost professorial.", clues:[
+    { id:"c4", text:"A small wooden flute beside Fluffy. Too refined for Hagrid — almost professorial in its craftsmanship.",    found:false, key:true  },
+    { id:"c5", text:"The trapdoor: no forced entry. The enchantments were lifted with precise advanced spellwork.",              found:false, key:true  },
+    { id:"c6", text:"A single black feather — no known Hogwarts bird. A peacock, perhaps? None are kept here... officially.",   found:false, key:false },
+  ]},
+  { id:"library",  name:"Restricted Section",   icon:"📖", desc:"A page has been torn from its spine. The remaining books have fallen strangely, completely silent.", clues:[
+    { id:"c7", text:"A torn page from 'Secrets of the Darkest Art' — specifically the chapter on stone transmutation.",         found:false, key:true  },
+    { id:"c8", text:"The sign-out log: final entry smudged. The ink — distinctive violet — is the same shade as the handkerchief.", found:false, key:true },
+    { id:"c9", text:"A Bertie Bott's bean — earwax flavour. Dumbledore's documented preference. He was here recently.",         found:false, key:false },
+  ]},
+  { id:"mirror",   name:"Mirror of Erised",     icon:"🪞", desc:"The Mirror glows with unusual intensity. Someone stood before it recently — the dust pattern shows it.", clues:[
+    { id:"c10",text:"An unsigned note at the Mirror's base: 'I see myself holding it. I always have.'",                         found:false, key:true  },
+    { id:"c11",text:"Trace droplets of Felix Felicis — Liquid Luck. This theft was not improvised. It was planned.",            found:false, key:true  },
+    { id:"c12",text:"The Mirror shows a face tonight instead of desire — familiar, calculating, wearing a turban.",              found:false, key:false },
+  ]},
+  { id:"owlery",   name:"The Owlery",           icon:"🦉", desc:"One owl is absent. A letter was sent tonight to an unknown recipient. The ash of burned parchment.", clues:[
+    { id:"c13",text:"Burned parchment — one phrase survived: '...the stone is hidden where only the worthy may claim it.'",    found:false, key:true  },
+    { id:"c14",text:"An unsent letter: 'Q.Q. to R.Q.' — 'Meet me at the stone. Tonight is the night.'",                        found:false, key:true  },
+    { id:"c15",text:"An impression in the straw — someone waited here for hours. Small boots, meticulous heel placement.",      found:false, key:true  },
+  ]},
+];
 
-/* ── Floating candles ── */
-function Candles() {
-  const c = Array.from({ length: 12 }, (_, i) => ({ id: i, left: `${8 + i * 7.5}%`, delay: `${i * 0.3}s`, height: 20 + Math.random() * 20 }));
+const SUSPECTS = [
+  { id:"quirrell", name:"Professor Quirrell", role:"Defence Against Dark Arts", icon:"🎓", guilty:true,
+    motive:"Possessed by Voldemort — seeking the Stone to restore his master to power",
+    alibi:"Claims he was in his office preparing lesson plans throughout the evening",
+    tells:["Initials Q.Q. match the handkerchief discovered in the Potions dungeon","His refined flute matches the instrument found beside Fluffy","His violet ink appears in the Restricted Section sign-out log","The letter 'Q.Q. to R.Q.' — Quirinus Quirrell writing to Voldemort","Felix Felicis traces correspond to his known apothecary purchases","He knew Fluffy's weakness — Dumbledore told him personally on arrival"],
+    questions:[
+      { q:"Where were you between ten and midnight?", options:[
+        { text:"In my office, p-p-preparing lessons.", response:"His stutter worsens on 'preparing'. Violet ink on his fingers. His hand moves involuntarily to his turban.", sus:true  },
+        { text:"I walked the grounds. The night air settles the nerves.", response:"Walking the grounds on the night the Stone vanishes. You note this carefully in your book.", sus:true  },
+      ]},
+      { q:"Do you know how one might bypass Fluffy?", options:[
+        { text:"A three-headed dog? I have never been near it.", response:"His hand rises to his turban. Beneath it — something shifts. Something old.", sus:true  },
+        { text:"Dumbledore may have mentioned something about music.", response:"He volunteers this unprompted. Why would an innocent man know this?", sus:true  },
+      ]},
+      { q:"What do you know of the Philosopher's Stone?", options:[
+        { text:"Only what the history books record.", response:"There are two shadows behind his eyes. One is his. The other is ancient. Hungry.", sus:true  },
+        { text:"A dangerous object. Better it were never found.", response:"The turban shifts. For just a moment you hear it — a whisper that is not his voice.", sus:true  },
+      ]},
+    ]},
+  { id:"snape", name:"Professor Snape", role:"Potions Master", icon:"🖤", guilty:false,
+    motive:"Known antipathy — though toward what, precisely, remains unclear",
+    alibi:"Was observed counter-cursing during the Quidditch match. Multiple eyewitnesses.",
+    tells:["Snape was protecting the Stone — counter-cursing Quirrell throughout the evening","His alibi is absolute — students and staff both witnessed his actions","He suspected Quirrell before anyone else. He is innocent."],
+    questions:[
+      { q:"Why were you observed muttering at the Quidditch match?", options:[
+        { text:"Preparing notes. It does not concern you.", response:"Arrogant — but his alibi covers the entire theft window completely. He was in the stands.", sus:false },
+        { text:"Counter-jinxes. Someone was cursing Potter's broom.", response:"He states this as flat fact. Cross-referencing confirms it — he was protecting, not stealing.", sus:false },
+      ]},
+      { q:"Were you at the third-floor corridor last night?", options:[
+        { text:"I was bitten on the third floor while investigating suspicious activity.", response:"He shows you the wound. Genuine. He suspected Quirrell before you did.", sus:false },
+        { text:"My reasons are my own.", response:"A deflection born of pride. Not guilt.", sus:false },
+      ]},
+    ]},
+  { id:"mcgonagall", name:"Professor McGonagall", role:"Head of Gryffindor", icon:"🐱", guilty:false,
+    motive:"Her loyalty to students above all — but loyalty is not guilt",
+    alibi:"Playing chess with Nearly Headless Nick. Corroborated by three portraits.",
+    tells:["Chess alibi confirmed by Nearly Headless Nick and three independent portraits","Her Animagus form leaves cat paw prints — none found at the scene","She suspected Snape. Snape is innocent. So is she."],
+    questions:[
+      { q:"Were you near the third-floor corridor?", options:[
+        { text:"Certainly not. I was occupied elsewhere.", response:"She holds your gaze without flinching. No evasion. No guilt.", sus:false },
+        { text:"I patrol the corridors. As is my duty.", response:"Her route on Tuesdays does not pass the third floor. The duty roster confirms it.", sus:false },
+      ]},
+      { q:"Do you have suspicions about who is responsible?", options:[
+        { text:"I have a theory. It involves a certain colleague of mine.", response:"She suspects Snape — who is entirely innocent. A misdirection, however sincere.", sus:false },
+        { text:"I trust Dumbledore's enchantments. This alarms me greatly.", response:"Genuine distress. This is worry, not guilt.", sus:false },
+      ]},
+    ]},
+  { id:"hagrid", name:"Rubeus Hagrid", role:"Gamekeeper", icon:"🌲", guilty:false,
+    motive:"Accidentally disclosed Fluffy's weakness to a stranger — unknowingly",
+    alibi:"Was in his hut all evening. Norbert the Norwegian Ridgeback confirms his presence.",
+    tells:["Told a turban-wearing stranger how to get past Fluffy — Quirrell in disguise","Genuinely devastated when he realises. He is a victim of manipulation, not a perpetrator","The description of the stranger matches Quirrell precisely"],
+    questions:[
+      { q:"Did you share information about Fluffy with anyone?", options:[
+        { text:"There was a fella at the Hog's Head... very interested in magical creatures...", response:"Horror crosses his face as he understands what he has admitted. This guilt is not the theft kind.", sus:true  },
+        { text:"I would never betray Fluffy. Never.", response:"He says this passionately. Then he goes very pale.", sus:false },
+      ]},
+      { q:"Can you describe this stranger?", options:[
+        { text:"Had a turban. Quiet sort. Bought me a drink.", response:"A turban. Your pulse quickens. Only one professor at Hogwarts wears a turban.", sus:true  },
+        { text:"Didn't see much. He kept to the shadow.", response:"Hagrid is not the villain here. He is a victim.", sus:false },
+      ]},
+    ]},
+  { id:"peeves", name:"Peeves", role:"Poltergeist", icon:"👻", guilty:false,
+    motive:"Pure entropy — but even Peeves has physical limitations",
+    alibi:"Documented dropping water balloons on Argus Filch, fifth floor. Noted in Filch's complaint log.",
+    tells:["Alibi confirmed in Filch's official complaint log: fifth floor, 11:45 PM","Peeves cannot hold objects with sufficient precision for this level of theft","This crime required silence — Peeves is constitutionally incapable of silence"],
+    questions:[
+      { q:"Were you near the third floor last night?", options:[
+        { text:"Oooooh the corridor! Peeves knows all about the doggy!", response:"Insufferably cheerful. But his alibi — water balloons at 11:45 — is documented and precise.", sus:false },
+        { text:"Peeves was occupied! Very important business!", response:"Filch's log places him firmly on the fifth floor. Rock solid.", sus:false },
+      ]},
+      { q:"Did you observe anyone near the corridor?", options:[
+        { text:"The turban-man! Peeves saw him! Going somewhere forbidden!", response:"Peeves spotted Quirrell. A crucial piece of testimony from the least credible witness in the castle.", sus:true  },
+        { text:"Peeves sees everything. That's the point of being Peeves.", response:"He dissolves into cackling. But beneath the chaos — a genuine witness.", sus:false },
+      ]},
+    ]},
+];
+
+const CIPHER = {
+  prompt:"Scratched into the base of the trapdoor — Dumbledore's final message to the investigator he trusted:",
+  encoded:"DHLLHO DHZ AOL AOPLS",
+  answer:"QUIRRELL WAS THE THIEF",
+  shift:7,
+  hint:"Caesar cipher. Shift each letter back by 7 positions. D→Q, H→U, L→I, O→H...",
+};
+
+/* ══════════════════════════════════════════════════════════
+   CASE NOTES PANEL
+══════════════════════════════════════════════════════════ */
+function CaseNotes({ clues, onClose }) {
+  const found = clues.filter(c=>c.found);
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: 120, pointerEvents: "none", zIndex: 1 }}>
-      {c.map(x => (
-        <div key={x.id} style={{ position: "absolute", left: x.left, top: 30, animation: `potionBubble ${2 + Math.random()}s ${x.delay} ease-in-out infinite` }}>
-          <div style={{ width: 4, height: x.height, background: "linear-gradient(#f5e6c8,#c8a878)", borderRadius: "2px 2px 0 0", margin: "0 auto", position: "relative" }}>
-            <div style={{ width: 1, height: 6, background: "#555", position: "absolute", top: -5, left: "50%", transform: "translateX(-50%)" }} />
-            <div style={{ width: 6, height: 10, background: "radial-gradient(ellipse at bottom,#ffcc00,#ff6600,transparent)", borderRadius: "50% 50% 30% 30%", position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", animation: "candleFlicker 0.4s infinite alternate", boxShadow: "0 0 6px 2px rgba(255,160,0,0.35)" }} />
+    <div style={{ position:"fixed",inset:0,background:"rgba(4,3,8,.94)",backdropFilter:"blur(14px)",display:"flex",alignItems:"center",justifyContent:"center",padding:20,zIndex:800 }} className="fi">
+      <style>{G}</style>
+      <div style={{ width:"100%",maxWidth:520,maxHeight:"88vh",background:"linear-gradient(145deg,#141020,#0f0d1a)",borderRadius:3,display:"flex",flexDirection:"column",border:"1px solid rgba(201,168,76,.2)",boxShadow:"0 40px 80px rgba(0,0,0,.8)" }}>
+        <div style={{ background:"rgba(0,0,0,.4)",padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:"1px solid rgba(201,168,76,.1)" }}>
+          <div>
+            <p style={{ fontFamily:"'Cinzel',serif",color:THEME.gold,fontSize:".75rem",letterSpacing:".35em" }}>CASE NOTES</p>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.goldDim,fontSize:".78rem",fontStyle:"italic" }}>Evidence collected so far</p>
           </div>
+          <button style={{ background:"none",border:"none",color:THEME.goldDim,cursor:"pointer",fontSize:"1.1rem",opacity:.6 }} onClick={onClose}>✕</button>
         </div>
-      ))}
-    </div>
-  );
-}
-
-/* ── Confetti ── */
-function Confetti() {
-  const p = Array.from({ length: 60 }, (_, i) => ({ id: i, left: `${Math.random() * 100}%`, color: ["#d4af37", "#8b1a1a", "#1a3a6b", "#2d6b1a", "#c8b89a"][i % 5], size: `${5 + Math.random() * 8}px`, delay: `${Math.random() * 2}s`, dur: `${2.5 + Math.random() * 2}s`, br: i % 3 === 0 ? "50%" : "0" }));
-  return <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 990 }}>{p.map(c => <div key={c.id} style={{ position: "absolute", top: "-20px", left: c.left, width: c.size, height: c.size, background: c.color, borderRadius: c.br, animation: `confettiFall ${c.dur} ${c.delay} ease-in forwards` }} />)}</div>;
-}
-
-/* ── Typewriter ── */
-function useTypewriter(text, speed = 30, active = true) {
-  const [out, setOut] = useState("");
-  const [done, setDone] = useState(false);
-  useEffect(() => {
-    if (!active) { setOut(""); setDone(false); return; }
-    setOut(""); setDone(false); let i = 0;
-    const iv = setInterval(() => { if (i < text.length) setOut(text.slice(0, ++i)); else { setDone(true); clearInterval(iv); } }, speed);
-    return () => clearInterval(iv);
-  }, [text, active]);
-  return { out, done };
-}
-
-/* ── Shared btn ── */
-const Btn = ({ children, onClick, bg = "linear-gradient(135deg,#8b1a1a,#a52020)", disabled = false, style = {} }) => (
-  <button onClick={onClick} disabled={disabled} style={{ padding: "12px 28px", background: disabled ? "rgba(255,255,255,0.04)" : bg, border: `1.5px solid ${disabled ? "#2a1e08" : "#d4af37"}`, color: disabled ? "#4a3a20" : "#f0e6c8", fontFamily: "'Cinzel', serif", fontSize: "0.85rem", letterSpacing: 2, cursor: disabled ? "default" : "pointer", borderRadius: 2, transition: "all .3s", boxShadow: disabled ? "none" : "0 0 15px rgba(212,175,55,0.15)", ...style }}>
-    {children}
-  </button>
-);
-
-/* ── Notebook overlay ── */
-function Spellbook({ clues, onClose }) {
-  const found = clues.filter(c => c.found);
-  return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, zIndex: 800 }} className="fi">
-      <div style={{ width: "100%", maxWidth: 540, maxHeight: "85vh", background: "linear-gradient(145deg,#2a1e08,#1e1408)", borderRadius: 4, display: "flex", flexDirection: "column", border: "2px solid #8b6914", boxShadow: "0 20px 60px rgba(0,0,0,0.8)" }}>
-        <div style={{ background: "#1a0f04", padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", borderRadius: "2px 2px 0 0" }}>
-          <span style={{ color: "#d4af37", fontFamily: "'Cinzel Decorative'", fontSize: "0.85rem", letterSpacing: 3 }}>📜 Spell & Clue Book</span>
-          <button style={{ background: "none", border: "none", color: "#8b6914", cursor: "pointer", fontSize: "1.1rem" }} onClick={onClose}>✕</button>
-        </div>
-        <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
-          {found.length === 0 && <p style={{ color: "#4a3a20", fontFamily: "'Crimson Text'", fontStyle: "italic", textAlign: "center", marginTop: 20 }}>No clues yet. Explore Hogwarts!</p>}
-          {found.map((c, i) => (
-            <div key={c.id} style={{ display: "flex", gap: 10, padding: "10px 14px", background: "rgba(212,175,55,0.05)", borderLeft: `3px solid ${c.key ? "#d4af37" : "#4a3a20"}`, borderRadius: "0 4px 4px 0" }} className="fil">
-              <span style={{ color: c.key ? "#d4af37" : "#4a3a20", flexShrink: 0 }}>⚡</span>
+        <div style={{ flex:1,overflowY:"auto",padding:"20px 22px",display:"flex",flexDirection:"column",gap:10 }}>
+          {found.length===0 && (
+            <p style={{ color:THEME.silverDim,fontFamily:"'Cormorant Garamond',serif",fontStyle:"italic",textAlign:"center",marginTop:24,opacity:.6 }}>
+              No evidence collected yet.<br/>Begin your investigation.
+            </p>
+          )}
+          {found.map((c,i)=>(
+            <div key={c.id} style={{ display:"flex",gap:12,padding:"12px 16px",background:"rgba(201,168,76,.03)",borderLeft:`2px solid ${c.key?"rgba(201,168,76,.45)":"rgba(201,168,76,.12)"}`,borderRadius:"0 2px 2px 0" }} className="fil">
+              <span style={{ color:c.key?"rgba(201,168,76,.6)":"rgba(201,168,76,.2)",flexShrink:0,marginTop:2,fontSize:".8rem" }}>✦</span>
               <div>
-                <p style={{ color: "#c8b89a", fontFamily: "'Crimson Text'", fontSize: "0.95rem", lineHeight: 1.7 }}>{c.text}</p>
-                {c.key && <span style={{ color: "#8b6914", fontFamily: "'Cinzel'", fontSize: "0.6rem", letterSpacing: 2 }}>KEY EVIDENCE</span>}
+                <p style={{ color:THEME.silver,fontFamily:"'Cormorant Garamond',serif",fontSize:".95rem",lineHeight:1.7 }}>{c.text}</p>
+                {c.key && <p style={{ color:THEME.goldDim,fontFamily:"'Cinzel',serif",fontSize:".58rem",letterSpacing:".3em",marginTop:4 }}>KEY EVIDENCE</p>}
               </div>
             </div>
           ))}
         </div>
-        <div style={{ padding: "10px 20px", borderTop: "1px solid #2a1e08" }}>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ color: "#8b6914", fontFamily: "'Cinzel'", fontSize: "0.72rem", letterSpacing: 2 }}>{found.length}/{clues.length} clues</span>
-            <div style={{ width: "55%", height: 4, background: "#1a1208", borderRadius: 2 }}>
-              <div style={{ width: `${(found.length / clues.length) * 100}%`, height: "100%", background: "linear-gradient(90deg,#8b6914,#d4af37)", borderRadius: 2, transition: "width .5s" }} />
+        <div style={{ padding:"12px 22px",borderTop:"1px solid rgba(201,168,76,.08)" }}>
+          <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+            <span style={{ color:THEME.goldDim,fontFamily:"'Cinzel',serif",fontSize:".62rem",letterSpacing:".3em" }}>{found.length} / {clues.length}</span>
+            <div style={{ width:"55%",height:2,background:"rgba(201,168,76,.08)",borderRadius:1 }}>
+              <div style={{ width:`${(found.length/clues.length)*100}%`,height:"100%",background:"rgba(201,168,76,.5)",borderRadius:1,transition:"width .6s ease" }}/>
             </div>
           </div>
         </div>
@@ -113,177 +163,65 @@ function Spellbook({ clues, onClose }) {
     </div>
   );
 }
-
-/* ══════════════════════════════════════════════════════════
-   GAME DATA — THE PHILOSOPHER'S THIEF
-══════════════════════════════════════════════════════════ */
-const CASE = {
-  title: "THE PHILOSOPHER'S THIEF",
-  subtitle: "A Hogwarts Mystery",
-  setting: "Hogwarts School of Witchcraft & Wizardry, 11:47 PM",
-  premise: `The Philosopher's Stone has vanished from the third-floor corridor.\nProfessor Dumbledore's enchantments were bypassed — perfectly.\nFive suspects remain within the castle walls.\nA storm howls over the Forbidden Forest.\n\nYou are Detective Amritha, the brightest witch of the age.\nYou have until midnight to name the thief.`,
-};
-
-const HP_ROOMS = [
-  { id: "potions", name: "Potions Dungeon", icon: "🧪", desc: "Stone walls drip with moisture. Shelves of unblinking ingredients stare back. A cauldron still warm.", clues: [
-    { id: "h1", text: "A smashed Boomslang skin vial — still smoking. The residue matches a potion that grants disguise.", found: false, key: true },
-    { id: "h2", text: "An overturned stool near Snape's private shelf. The restricted cabinet is ajar — not forced.", found: false, key: false },
-    { id: "h3", text: "A monogrammed handkerchief — the initials Q.Q. Dropped behind a cauldron, still warm.", found: false, key: true },
-  ]},
-  { id: "corridor", name: "Third-Floor Corridor", icon: "🚪", desc: "The door hangs open. Fluffy's paw prints end abruptly. A melody lingers — someone played a flute.", clues: [
-    { id: "h4", text: "Fluffy is asleep — a small wooden flute rests beside him. Not Hagrid's style — too refined.", found: false, key: true },
-    { id: "h5", text: "The trapdoor shows no forced entry. The enchantments were lifted with precise, advanced spellwork.", found: false, key: true },
-    { id: "h6", text: "A single black feather — not from any bird in the Owlery. Peacock? No peacocks at Hogwarts... officially.", found: false, key: false },
-  ]},
-  { id: "library", name: "Restricted Section", icon: "📚", desc: "Pages flutter on their own. Screaming books have gone strangely silent. Something was read — and removed.", clues: [
-    { id: "h7", text: "A page torn from 'Secrets of the Darkest Art' — specifically the chapter on stone transmutation.", found: false, key: true },
-    { id: "h8", text: "Madam Pince's sign-out log: the last entry is smudged. But the ink — violet — is distinctive.", found: false, key: true },
-    { id: "h9", text: "A Bertie Bott's Every Flavour Bean on the floor — earwax flavour. Dumbledore's known weakness.", found: false, key: false },
-  ]},
-  { id: "mirrorroom", name: "The Mirror of Erised", icon: "🪞", desc: "The Mirror glows faintly. Someone stood before it recently — the dust pattern on the floor is fresh.", clues: [
-    { id: "h10", text: "A note left at the Mirror's base: 'I see myself holding it. I always have.' — unsigned.", found: false, key: true },
-    { id: "h11", text: "Tiny droplets of a shimmering gold liquid — Liquid Luck (Felix Felicis). Someone prepared meticulously.", found: false, key: true },
-    { id: "h12", text: "The Mirror shows something unusual tonight — instead of desire, it shows a face. Familiar. Calculating.", found: false, key: false },
-  ]},
-  { id: "owlery", name: "The Owlery", icon: "🦉", desc: "Feathers everywhere. One owl is missing its usual perch. A letter was sent tonight — but to whom?", clues: [
-    { id: "h13", text: "A burned parchment in the corner — nearly destroyed, but one phrase survives: '...the stone is hidden where...'", found: false, key: true },
-    { id: "h14", text: "A second letter, unsent, addressed to 'R.Q.' from 'Q.Q.' — 'Meet me at the stone. Tonight is the night.'", found: false, key: true },
-    { id: "h15", text: "An imprint in the straw — someone waited here for hours. Small boots, precise heel placement.", found: false, key: true },
-  ]},
-];
-
-const HP_SUSPECTS = [
-  { id: "quirrell", name: "Prof. Quirrell", role: "Defence Against Dark Arts", icon: "🎓", guilty: true,
-    motive: "Possessed by Voldemort — desperate to obtain the Stone to restore his master",
-    alibi: "Claims he was in his office preparing lesson plans all evening",
-    tells: ["Initials Q.Q. match the handkerchief found in Potions dungeon","He plays a flute — matched instrument found with Fluffy","His distinctive violet ink appears in the library sign-out log","The letter from 'Q.Q.' to 'R.Q.' — Quirinus Quirrell to R = his master","Felix Felicis traces match his known apothecary purchases","He knew Fluffy's weakness — Dumbledore told him the same night the Stone arrived"],
-    questions: [
-      { q: "Where were you between 10 PM and midnight?", options: [
-        { text: "In my office, p-p-preparing tomorrow's lesson.", response: "His stutter worsens when he says 'preparing'. The ink on his fingers is violet.", suspicious: true },
-        { text: "I took a walk. The night air helps my nerves.", response: "A walk on the night the Stone goes missing. You make a careful note.", suspicious: true },
-      ]},
-      { q: "Do you know how to put Fluffy to sleep?", options: [
-        { text: "A three-headed dog? I've n-never even been near it!", response: "His hand moves involuntarily to his turban. You notice it moves — as if something shifts.", suspicious: true },
-        { text: "Dumbledore may have mentioned something about music.", response: "He volunteers this information. Why would an innocent man know this?", suspicious: true },
-      ]},
-      { q: "What do you know about the Philosopher's Stone?", options: [
-        { text: "Only what's in the history books, I assure you.", response: "His eyes — there's a second shadow in them. Something old. Something hungry.", suspicious: true },
-        { text: "A dangerous object. Better it were never found.", response: "The turban twitches. Behind it — for just a moment — you hear a whisper.", suspicious: true },
-      ]},
-    ]
-  },
-  { id: "snape", name: "Prof. Snape", role: "Potions Master", icon: "🖤", guilty: false,
-    motive: "Known rivalry with Dumbledore — or is it more?",
-    alibi: "Was seen counter-cursing something in the stands. Multiple witnesses.",
-    tells: ["Snape was PROTECTING the Stone — counter-cursing Quirrell all evening","His alibi is ironclad — dozens of students witnessed it","He appears suspicious but is entirely innocent — the ultimate red herring"],
-    questions: [
-      { q: "Why were you seen muttering during the Quidditch match?", options: [
-        { text: "Classroom preparation. Nothing that concerns you.", response: "Arrogant dismissal — but his alibi covers him completely during the theft window.", suspicious: false },
-        { text: "Counter-jinxes. Someone was cursing Potter's broom.", response: "He says this flatly, as fact. Cross-checking confirms it: he was protecting, not stealing.", suspicious: false },
-      ]},
-      { q: "Did you try to get past Fluffy?", options: [
-        { text: "I was bitten on the third floor, yes. Investigating suspicious activity.", response: "He shows you the bite. It's genuine. He suspected Quirrell before you did.", suspicious: false },
-        { text: "I have my reasons. They are not your business.", response: "Not an admission — a deflection born of pride, not guilt.", suspicious: false },
-      ]},
-    ]
-  },
-  { id: "mcgonagall", name: "Prof. McGonagall", role: "Transfiguration", icon: "🐱", guilty: false,
-    motive: "Head of Gryffindor — would do anything to protect her students",
-    alibi: "Was playing chess with Nearly Headless Nick until 1 AM — corroborated",
-    tells: ["Chess alibi corroborated by three portraits AND Nearly Headless Nick","Her Animagus form leaves cat paw prints — not found at any scene","She suspected Snape, ironically — also not the culprit"],
-    questions: [
-      { q: "Were you near the third floor corridor tonight?", options: [
-        { text: "Certainly not. I was occupied elsewhere.", response: "She meets your gaze without flinching. No tells. No guilt.", suspicious: false },
-        { text: "I patrol the corridors regularly. As is my duty.", response: "Routine patrol — her route doesn't cross the third floor on Tuesdays.", suspicious: false },
-      ]},
-      { q: "Do you have suspicions about who might be behind this?", options: [
-        { text: "I have my theories. Involving a certain greasy-haired colleague.", response: "She suspects Snape — who is innocent. A telling misdirection.", suspicious: false },
-        { text: "I trust Dumbledore's protections were sufficient. This concerns me greatly.", response: "Genuine distress. Not guilt — worry.", suspicious: false },
-      ]},
-    ]
-  },
-  { id: "hagrid", name: "Rubeus Hagrid", role: "Gamekeeper", icon: "🌲", guilty: false,
-    motive: "Accidentally sold information about Fluffy — unknowingly",
-    alibi: "Was in his hut all evening — Norbert the dragon witnessed everything",
-    tells: ["Hagrid innocently told a stranger (Quirrell in disguise) how to get past Fluffy","He's heartbroken about this — but entirely innocent","The 'stranger at the pub' matches Quirrell's description perfectly"],
-    questions: [
-      { q: "Did you tell anyone how to get past Fluffy?", options: [
-        { text: "Well... there was a fella at the Hog's Head... seemed interested in magical creatures...", response: "His eyes fill with horror as he realizes what he's admitted. Genuine, devastating guilt — not the theft kind.", suspicious: true },
-        { text: "I would never! Fluffy's safety is sacred to me.", response: "He says this passionately. Then pauses. Then goes very pale.", suspicious: false },
-      ]},
-      { q: "What did this stranger look like?", options: [
-        { text: "Had a turban on. Quiet fella. Bought me a drink.", response: "A turban. Your pulse quickens. Only one professor wears a turban.", suspicious: true },
-        { text: "Didn't get a good look. He kept to the shadows.", response: "Hagrid is not the villain here — just a victim of manipulation.", suspicious: false },
-      ]},
-    ]
-  },
-  { id: "peeves", name: "Peeves", role: "Poltergeist", icon: "👻", guilty: false,
-    motive: "Chaos — but even Peeves has limits",
-    alibi: "Was dropping water balloons on Filch on the 5th floor — documented in Filch's complaint log",
-    tells: ["Alibi confirmed in Filch's official complaint log at 11:45 PM","Peeves can't physically hold objects with enough precision for this theft","Peeves would have been too loud — this crime required silence and planning"],
-    questions: [
-      { q: "Were you near the third floor last night?", options: [
-        { text: "Oooooh the third floor! Peeves knows all about the doggy!", response: "He's insufferably cheerful. And alibied. Filch's log confirms 5th floor at time of theft.", suspicious: false },
-        { text: "Peeves was busy! Very busy! Very important chaos business!", response: "His alibi — water balloons at 11:45 — is documented in Filch's official complaint. Rock solid.", suspicious: false },
-      ]},
-      { q: "Did you see anyone suspicious near the corridor?", options: [
-        { text: "The turban-man! Peeves saw him! Going somewhere he shouldn't!", response: "Peeves spotted Quirrell near the corridor. Crucial witness — despite being the least credible.", suspicious: true },
-        { text: "Peeves sees EVERYTHING. That's the point of being Peeves!", response: "He dissolves into cackling. But beneath the chaos — a useful witness.", suspicious: false },
-      ]},
-    ]
-  },
-];
-
-const HP_CIPHER = {
-  prompt: "Scratched into the trapdoor in Ancient Runes — Dumbledore's final clue to the investigator:",
-  encrypted: "DHLLHO DHZ AOL AOPLS",
-  answer: "QUIRRELL WAS THE THIEF",
-  hint: "ROT-13 variant: shift each letter by 7 forward. A→H, B→I... T→A, U→B...",
-  shift: 7,
-};
 
 /* ══════════════════════════════════════════════════════════
    ROOM EXPLORER
 ══════════════════════════════════════════════════════════ */
 function RoomExplorer({ room, allClues, onFindClue, onBack }) {
-  const [examining, setExamining] = useState(null);
-  const roomClues = allClues.filter(c => room.clues.some(rc => rc.id === c.id));
+  const [examining,setEx] = useState(null);
+  const roomClues = allClues.filter(c=>room.clues.some(rc=>rc.id===c.id));
+
   return (
-    <div style={{ minHeight: "100vh", background: "radial-gradient(ellipse at top,#0a0608,#050308)", paddingBottom: 40 }} className="fi">
-      <Stars count={40} /><Candles />
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid #1a1208", background: "rgba(0,0,0,0.7)", position: "sticky", top: 0, zIndex: 50 }}>
-        <Btn onClick={onBack} style={{ padding: "8px 16px", fontSize: "0.75rem" }}>← Hogwarts</Btn>
-        <h2 style={{ fontFamily: "'Cinzel'", fontSize: "clamp(0.9rem,4vw,1.3rem)", color: "#d4af37", letterSpacing: 4 }} className="goldGlow">{room.icon} {room.name}</h2>
-        <span style={{ color: "#4a3a20", fontFamily: "'Cinzel'", fontSize: "0.65rem", letterSpacing: 2 }}>INVESTIGATE</span>
-      </div>
-      <div style={{ maxWidth: 680, margin: "0 auto", padding: "28px 20px" }}>
-        <p style={{ fontFamily: "'Crimson Text'", fontSize: "1.1rem", color: "#a89070", lineHeight: 1.8, fontStyle: "italic", textAlign: "center", marginBottom: 24 }}>{room.desc}</p>
-        <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <div style={{ fontSize: 56, animation: "wandPulse 2s infinite" }}>🔍</div>
-          <p style={{ color: "#8b6914", fontFamily: "'Cinzel'", fontSize: "0.65rem", letterSpacing: 3, marginTop: 6 }}>DETECTIVE AMRITHA</p>
+    <div style={{ minHeight:"100vh",background:THEME.bg,paddingBottom:60 }} className="fi">
+      <style>{G}</style>
+      <MagicParticles count={35}/><FogLayers/><AtmosphericLightning/>
+      {/* Sticky header */}
+      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 20px",background:"rgba(6,5,10,.85)",borderBottom:"1px solid rgba(201,168,76,.1)",backdropFilter:"blur(10px)",position:"sticky",top:0,zIndex:50 }}>
+        <CineBtn onClick={onBack} variant="ghost" style={{ padding:"9px 18px",fontSize:".72rem" }}>← Back</CineBtn>
+        <div style={{ textAlign:"center" }}>
+          <p style={{ fontFamily:"'Cinzel',serif",color:THEME.gold,fontSize:"clamp(.8rem,3.5vw,1rem)",letterSpacing:".2em" }}>{room.icon} {room.name}</p>
+          <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.goldDim,fontSize:".72rem",fontStyle:"italic" }}>Investigation in progress</p>
         </div>
-        <h3 style={{ fontFamily: "'Cinzel'", fontSize: "0.8rem", color: "#8b6914", letterSpacing: 4, marginBottom: 14, textAlign: "center" }}>POINTS OF INTEREST</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(148px,1fr))", gap: 10 }}>
-          {roomClues.map((clue, i) => (
-            <div key={clue.id} style={{ border: `1px solid ${clue.found ? "#d4af37" : "#1a1208"}`, borderRadius: 4, padding: "16px 10px", textAlign: "center", cursor: "pointer", transition: "all .3s", background: clue.found ? "rgba(212,175,55,0.07)" : "rgba(255,255,255,0.01)", display: "flex", flexDirection: "column", gap: 6, alignItems: "center" }} onClick={() => { if (!clue.found) onFindClue(clue.id); setExamining(clue); }}>
-              <span style={{ fontSize: 26 }}>{clue.found ? "✨" : "❓"}</span>
-              <span style={{ fontFamily: "'Cinzel'", fontSize: "0.65rem", color: "#4a3a20", letterSpacing: 2 }}>{clue.found ? "Evidence" : `Area ${i + 1}`}</span>
-              {clue.key && clue.found && <span style={{ background: "rgba(212,175,55,0.1)", border: "1px solid #d4af3766", color: "#d4af37", padding: "2px 8px", fontSize: "0.6rem", fontFamily: "'Cinzel'", letterSpacing: 2, borderRadius: 2 }}>KEY</span>}
+        <div style={{ width:80 }}/>
+      </div>
+
+      <div style={{ width:"100%",maxWidth:520,margin:"0 auto",padding:"28px 20px",display:"flex",flexDirection:"column",gap:22 }}>
+        <p style={{ fontFamily:"'IM Fell English',serif",fontSize:"1rem",color:THEME.silverDim,lineHeight:1.85,fontStyle:"italic",textAlign:"center" }}>{room.desc}</p>
+        <GoldDivider/>
+        <p style={{ fontFamily:"'Cinzel',serif",color:THEME.goldDim,fontSize:".62rem",letterSpacing:".45em",textAlign:"center" }}>EXAMINE THE ROOM</p>
+        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(145px,1fr))",gap:10 }}>
+          {roomClues.map((clue,i)=>(
+            <div key={clue.id} onClick={()=>{ if(!clue.found)onFindClue(clue.id); setEx(clue); }} style={{
+              background: clue.found ? "linear-gradient(145deg,#181424,#141020)" : "linear-gradient(145deg,#111020,#0e0c18)",
+              border:`1px solid ${clue.found?"rgba(201,168,76,.35)":"rgba(201,168,76,.08)"}`,
+              borderRadius:3, padding:"18px 12px", textAlign:"center", cursor:"pointer",
+              transition:"all .4s cubic-bezier(.23,1,.32,1)",
+              boxShadow: clue.found ? "0 0 20px rgba(201,168,76,.08)" : "none",
+              display:"flex",flexDirection:"column",gap:8,alignItems:"center",
+            }}>
+              <span style={{ fontSize:20,opacity:clue.found?.9:.4,filter:clue.found?"drop-shadow(0 0 8px rgba(201,168,76,.4))":"none",transition:"all .3s" }}>
+                {clue.found ? "✦" : "○"}
+              </span>
+              <span style={{ fontFamily:"'Cinzel',serif",fontSize:".58rem",color:clue.found?THEME.goldDim:"rgba(201,168,76,.25)",letterSpacing:".3em",textTransform:"uppercase" }}>
+                {clue.found ? "Examined" : `Area ${i+1}`}
+              </span>
+              {clue.key&&clue.found&&<span style={{ fontFamily:"'Cinzel',serif",fontSize:".55rem",color:"rgba(201,168,76,.5)",letterSpacing:".25em",borderTop:"1px solid rgba(201,168,76,.2)",paddingTop:6,width:"100%",textAlign:"center" }}>KEY</span>}
             </div>
           ))}
         </div>
       </div>
+
       {examining && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, zIndex: 700 }} className="fi">
-          <div style={{ background: "linear-gradient(145deg,#1a1208,#0f0a04)", border: "1px solid #d4af37", borderRadius: 4, padding: 28, maxWidth: 480, width: "100%", animation: "potionBubble 3s ease-in-out infinite" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14 }}>
-              <span style={{ color: examining.key ? "#d4af37" : "#4a3a20", fontFamily: "'Cinzel'", fontSize: "0.68rem", letterSpacing: 3 }}>{examining.key ? "⚡ KEY EVIDENCE" : "OBSERVATION"}</span>
-              <button style={{ background: "none", border: "none", color: "#4a3a20", cursor: "pointer" }} onClick={() => setExamining(null)}>✕</button>
+        <div style={{ position:"fixed",inset:0,background:"rgba(4,3,8,.88)",backdropFilter:"blur(12px)",display:"flex",alignItems:"center",justifyContent:"center",padding:20,zIndex:700 }} className="fi">
+          <ParchmentCard style={{ maxWidth:460,width:"100%",border:`1px solid rgba(201,168,76,${examining.key?.4:.15})`,animation:"breathe 4s ease-in-out infinite" }}>
+            <div style={{ display:"flex",justifyContent:"space-between",marginBottom:14,alignItems:"flex-start" }}>
+              <p style={{ fontFamily:"'Cinzel',serif",color:examining.key?THEME.gold:THEME.goldDim,fontSize:".6rem",letterSpacing:".4em" }}>{examining.key?"KEY EVIDENCE":"OBSERVATION"}</p>
+              <button style={{ background:"none",border:"none",color:THEME.goldDim,cursor:"pointer",opacity:.5,fontSize:".9rem" }} onClick={()=>setEx(null)}>✕</button>
             </div>
-            <p style={{ fontFamily: "'Crimson Text'", fontSize: "1rem", color: "#c8b89a", lineHeight: 1.9 }}>{examining.text}</p>
-            <div style={{ textAlign: "center", marginTop: 16, fontSize: 40 }}>🔍</div>
-            {examining.key && <p style={{ color: "#8b6914", fontFamily: "'Cinzel'", fontSize: "0.7rem", letterSpacing: 2, textAlign: "center", marginTop: 10, fontStyle: "italic" }}>This could change everything...</p>}
-          </div>
+            <GoldDivider style={{ marginBottom:18 }}/>
+            <p style={{ fontFamily:"'IM Fell English',serif",fontSize:"1rem",color:THEME.parchDark,lineHeight:1.9 }}>{examining.text}</p>
+            {examining.key && <p style={{ fontFamily:"'Cinzel',serif",color:THEME.goldDim,fontSize:".6rem",letterSpacing:".4em",textAlign:"center",marginTop:16,fontStyle:"italic" }}>This changes things.</p>}
+          </ParchmentCard>
         </div>
       )}
     </div>
@@ -294,84 +232,106 @@ function RoomExplorer({ room, allClues, onFindClue, onBack }) {
    INTERROGATION
 ══════════════════════════════════════════════════════════ */
 function Interrogation({ suspect, onBack, onComplete }) {
-  const [qIdx, setQIdx] = useState(0);
-  const [answers, setAnswers] = useState([]);
-  const [suspicion, setSuspicion] = useState(0);
-  const [showTells, setShowTells] = useState(false);
+  const [qIdx,setQIdx]     = useState(0);
+  const [log,setLog]       = useState([]);
+  const [sus,setSus]       = useState(0);
+  const [tells,setTells]   = useState(false);
   const done = qIdx >= suspect.questions.length;
-  const suspColor = suspicion === 0 ? "#00cc88" : suspicion === 1 ? "#ffcc00" : "#ff4444";
+  const susColor = sus===0?"rgba(64,160,96,.8)":sus===1?"rgba(201,168,76,.8)":"rgba(192,64,64,.8)";
 
-  const handleAnswer = (opt) => {
-    setAnswers(prev => [...prev, { q: suspect.questions[qIdx].q, a: opt.text, r: opt.response, s: opt.suspicious }]);
-    if (opt.suspicious) setSuspicion(s => s + 1);
-    if (qIdx < suspect.questions.length - 1) setQIdx(q => q + 1);
+  const answer = opt => {
+    setLog(p=>[...p,{q:suspect.questions[qIdx].q,a:opt.text,r:opt.response,s:opt.sus}]);
+    if(opt.sus) setSus(s=>s+1);
+    if(qIdx<suspect.questions.length-1) setQIdx(q=>q+1);
     else { setQIdx(suspect.questions.length); onComplete(suspect.id); }
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "radial-gradient(ellipse at top right,#0a0008,#050308)", paddingBottom: 40 }} className="fi">
-      <Stars count={35} />
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid #1a1208", background: "rgba(0,0,0,0.7)", position: "sticky", top: 0, zIndex: 50 }}>
-        <Btn onClick={onBack} style={{ padding: "8px 16px", fontSize: "0.75rem" }}>← Back</Btn>
-        <h2 style={{ fontFamily: "'Cinzel'", fontSize: "clamp(0.85rem,4vw,1.2rem)", color: "#d4af37", letterSpacing: 4 }}>INTERROGATION</h2>
-        <span />
+    <div style={{ minHeight:"100vh",background:THEME.bg,paddingBottom:40 }} className="fi">
+      <style>{G}</style>
+      <MagicParticles count={30}/><FogLayers/><AtmosphericLightning/>
+      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 20px",background:"rgba(6,5,10,.85)",borderBottom:"1px solid rgba(201,168,76,.1)",backdropFilter:"blur(10px)",position:"sticky",top:0,zIndex:50 }}>
+        <CineBtn onClick={onBack} variant="ghost" style={{ padding:"9px 18px",fontSize:".72rem" }}>← Back</CineBtn>
+        <p style={{ fontFamily:"'Cinzel',serif",color:THEME.gold,fontSize:".85rem",letterSpacing:".3em" }}>INTERROGATION</p>
+        <div style={{ width:80 }}/>
       </div>
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: "24px 20px", display: "flex", gap: 20, flexWrap: "wrap" }}>
-        <div style={{ flex: "0 0 185px", background: "rgba(255,255,255,0.02)", border: "1px solid #1a1208", borderRadius: 4, padding: 18, textAlign: "center" }}>
-          <div style={{ fontSize: 48 }}>{suspect.icon}</div>
-          <h3 style={{ fontFamily: "'Cinzel'", color: "#d4af37", fontSize: "0.9rem", marginTop: 10, letterSpacing: 2 }}>{suspect.name}</h3>
-          <p style={{ color: "#4a3a20", fontFamily: "'Cinzel'", fontSize: "0.68rem", letterSpacing: 2, marginBottom: 14 }}>{suspect.role}</p>
-          <p style={{ color: "#4a3a20", fontFamily: "'Cinzel'", fontSize: "0.6rem", letterSpacing: 2, marginBottom: 6 }}>SUSPICION</p>
-          <div style={{ height: 4, background: "#111", borderRadius: 2, marginBottom: 14 }}>
-            <div style={{ width: `${(suspicion / suspect.questions.length) * 100}%`, height: "100%", background: suspColor, borderRadius: 2, transition: "all .5s" }} />
-          </div>
-          <p style={{ fontFamily: "'Crimson Text'", fontSize: "0.82rem", color: "#a89070", lineHeight: 1.6, textAlign: "left", marginBottom: 8 }}><strong style={{ color: "#8b6914" }}>MOTIVE: </strong>{suspect.motive}</p>
-          <p style={{ fontFamily: "'Crimson Text'", fontSize: "0.82rem", color: "#4a3a20", lineHeight: 1.6, textAlign: "left" }}><strong>ALIBI: </strong>{suspect.alibi}</p>
-        </div>
-        <div style={{ flex: 1, minWidth: 260 }}>
-          <div style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 18 }}>
-            <div style={{ fontSize: 52, animation: "wandPulse 2s infinite", flexShrink: 0 }}>🔍</div>
-            <div style={{ flex: 1 }}>
-              <p style={{ color: "#8b6914", fontFamily: "'Cinzel'", fontSize: "0.6rem", letterSpacing: 3, marginBottom: 6 }}>DETECTIVE AMRITHA</p>
-              <p style={{ fontFamily: "'Crimson Text'", fontSize: "1rem", color: "#c8b89a", fontStyle: "italic", lineHeight: 1.7 }}>"{done ? "I have what I need. For now." : suspect.questions[qIdx]?.q}"</p>
+
+      <div style={{ width:"100%",maxWidth:520,margin:"0 auto",padding:"24px 20px",display:"flex",flexDirection:"column",gap:18 }}>
+        {/* Suspect profile */}
+        <ParchmentCard>
+          <div style={{ display:"flex",gap:16,alignItems:"flex-start" }}>
+            <div style={{ flexShrink:0,textAlign:"center" }}>
+              <div style={{ fontSize:44,filter:"drop-shadow(0 0 10px rgba(201,168,76,.2))" }}>{suspect.icon}</div>
+              <p style={{ fontFamily:"'Cinzel',serif",color:THEME.gold,fontSize:".8rem",letterSpacing:".15em",marginTop:6 }}>{suspect.name}</p>
+              <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.goldDim,fontSize:".75rem",fontStyle:"italic" }}>{suspect.role}</p>
+            </div>
+            <div style={{ flex:1 }}>
+              <div style={{ marginBottom:10 }}>
+                <p style={{ fontFamily:"'Cinzel',serif",color:THEME.goldDim,fontSize:".58rem",letterSpacing:".35em",marginBottom:4 }}>SUSPICION LEVEL</p>
+                <div style={{ height:2,background:"rgba(255,255,255,.06)",borderRadius:1 }}>
+                  <div style={{ width:`${(sus/suspect.questions.length)*100}%`,height:"100%",background:susColor,borderRadius:1,transition:"width .6s ease" }}/>
+                </div>
+              </div>
+              <GoldDivider style={{ marginBottom:10 }}/>
+              <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.silverDim,fontSize:".88rem",lineHeight:1.6,marginBottom:6 }}><span style={{ color:THEME.goldDim,fontFamily:"'Cinzel',serif",fontSize:".58rem",letterSpacing:".3em" }}>MOTIVE — </span>{suspect.motive}</p>
+              <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.silverDim,fontSize:".88rem",lineHeight:1.6,opacity:.7 }}><span style={{ color:THEME.goldDim,fontFamily:"'Cinzel',serif",fontSize:".58rem",letterSpacing:".3em" }}>ALIBI — </span>{suspect.alibi}</p>
             </div>
           </div>
-          {answers.map((a, i) => (
-            <div key={i} style={{ background: "rgba(255,255,255,0.02)", borderLeft: "2px solid #1a1208", padding: "10px 14px", marginBottom: 10, borderRadius: "0 4px 4px 0" }}>
-              <p style={{ color: "#4a3a20", fontFamily: "'Cinzel'", fontSize: "0.68rem", letterSpacing: 1, marginBottom: 4 }}>{a.q}</p>
-              <p style={{ color: "#a89070", fontFamily: "'Crimson Text'", fontSize: "0.95rem", fontStyle: "italic", marginBottom: 4 }}>"{a.a}"</p>
-              <p style={{ color: a.s ? "#ff8866" : "#66cc88", fontFamily: "'Cinzel'", fontSize: "0.68rem", letterSpacing: 1 }}>{a.r}</p>
-            </div>
-          ))}
-          {!done && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 14 }}>
-              {suspect.questions[qIdx].options.map((opt, i) => (
-                <button key={i} style={{ background: "rgba(212,175,55,0.03)", border: "1px solid #2a1e08", color: "#c8b89a", padding: "12px 16px", cursor: "pointer", fontFamily: "'Crimson Text'", fontSize: "1rem", textAlign: "left", borderRadius: 4, transition: "all .2s", lineHeight: 1.5 }} onClick={() => handleAnswer(opt)}>
-                  <span style={{ color: "#d4af37", marginRight: 8 }}>→</span>"{opt.text}"
+        </ParchmentCard>
+
+        {/* Current question */}
+        {!done && (
+          <div className="fiu">
+            <p style={{ fontFamily:"'Cinzel',serif",color:THEME.goldDim,fontSize:".6rem",letterSpacing:".45em",marginBottom:12 }}>DETECTIVE AMRITHA</p>
+            <p style={{ fontFamily:"'IM Fell English',serif",fontSize:"1.05rem",color:THEME.parchDark,lineHeight:1.85,fontStyle:"italic",marginBottom:18 }}>
+              "{suspect.questions[qIdx]?.q}"
+            </p>
+            <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
+              {suspect.questions[qIdx]?.options.map((opt,i)=>(
+                <button key={i} onClick={()=>answer(opt)} style={{
+                  background:"rgba(201,168,76,.03)",border:"1px solid rgba(201,168,76,.12)",
+                  color:THEME.parchDark,padding:"14px 18px",cursor:"pointer",
+                  fontFamily:"'IM Fell English',serif",fontSize:"1rem",textAlign:"left",
+                  borderRadius:2,transition:"all .3s cubic-bezier(.23,1,.32,1)",lineHeight:1.6,
+                }}>
+                  <span style={{ color:"rgba(201,168,76,.4)",marginRight:10,fontFamily:"serif" }}>›</span>
+                  <em>"{opt.text}"</em>
                 </button>
               ))}
             </div>
-          )}
-          {done && (
-            <div style={{ marginTop: 18, textAlign: "center" }} className="fiu">
-              <p style={{ color: "#8b6914", fontFamily: "'Cinzel'", letterSpacing: 3, fontSize: "0.8rem", marginBottom: 14 }}>Interrogation complete.</p>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
-                <Btn onClick={() => setShowTells(!showTells)}>{showTells ? "Hide Analysis" : "View Analysis →"}</Btn>
-                <Btn onClick={onBack} bg="rgba(255,255,255,0.04)" style={{ borderColor: "#2a1e08", color: "#4a3a20" }}>← Return</Btn>
-              </div>
-              {showTells && (
-                <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 8, textAlign: "left" }} className="fiu">
-                  {suspect.tells.map((t, i) => (
-                    <div key={i} style={{ display: "flex", gap: 10, padding: "8px 12px", background: "rgba(212,175,55,0.04)", borderRadius: 2 }}>
-                      <span style={{ color: "#d4af37", flexShrink: 0 }}>⚡</span>
-                      <p style={{ color: "#a89070", fontFamily: "'Crimson Text'", fontSize: "0.9rem", lineHeight: 1.6 }}>{t}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
+          </div>
+        )}
+
+        {/* Previous exchange log */}
+        {log.map((entry,i)=>(
+          <div key={i} style={{ borderLeft:"1px solid rgba(201,168,76,.12)",paddingLeft:16 }}>
+            <p style={{ fontFamily:"'Cinzel',serif",color:THEME.goldDim,fontSize:".58rem",letterSpacing:".3em",marginBottom:6 }}>{entry.q}</p>
+            <p style={{ fontFamily:"'IM Fell English',serif",color:THEME.silverDim,fontSize:".9rem",fontStyle:"italic",marginBottom:6 }}>"{entry.a}"</p>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif",color:entry.s?"rgba(192,100,80,.8)":"rgba(80,160,100,.7)",fontSize:".85rem",letterSpacing:".05em" }}>{entry.r}</p>
+          </div>
+        ))}
+
+        {done && (
+          <div className="fiu" style={{ textAlign:"center" }}>
+            <GoldDivider style={{ marginBottom:16 }}/>
+            <p style={{ fontFamily:"'Cinzel',serif",color:THEME.goldDim,fontSize:".62rem",letterSpacing:".45em",marginBottom:16 }}>INTERROGATION CONCLUDED</p>
+            <div style={{ display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap" }}>
+              <CineBtn onClick={()=>setTells(!tells)}>{tells?"Conceal Analysis":"View Analysis"}</CineBtn>
+              <CineBtn onClick={onBack} variant="ghost">Return</CineBtn>
             </div>
-          )}
-        </div>
+            {tells && (
+              <div className="fiu" style={{ marginTop:18,textAlign:"left" }}>
+                <GoldDivider style={{ marginBottom:14 }}/>
+                {suspect.tells.map((t,i)=>(
+                  <div key={i} style={{ display:"flex",gap:10,padding:"8px 0",borderBottom:"1px solid rgba(201,168,76,.06)" }}>
+                    <span style={{ color:"rgba(201,168,76,.4)",flexShrink:0,fontSize:".8rem" }}>✦</span>
+                    <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.silverDim,fontSize:".92rem",lineHeight:1.65 }}>{t}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -381,74 +341,92 @@ function Interrogation({ suspect, onBack, onComplete }) {
    ANCIENT RUNES CIPHER
 ══════════════════════════════════════════════════════════ */
 function RunesCipher({ onSolve, solved, onBack }) {
-  const [input, setInput] = useState("");
-  const [wrong, setWrong] = useState(false);
-  const [showHint, setShowHint] = useState(false);
+  const [input,setInput]   = useState("");
+  const [wrong,setWrong]   = useState(false);
+  const [hint,setHint]     = useState(false);
 
   const check = () => {
-    if (input.trim().toUpperCase() === HP_CIPHER.answer) { onSolve(); }
-    else { setWrong(true); setTimeout(() => setWrong(false), 600); setInput(""); }
+    if(input.trim().toUpperCase()===CIPHER.answer) onSolve();
+    else { setWrong(true);setTimeout(()=>setWrong(false),700);setInput(""); }
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "radial-gradient(ellipse at bottom,#050010,#050308)", display: "flex", flexDirection: "column" }} className="fi">
-      <Stars count={40} />
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid #0a0a20", background: "rgba(0,0,0,0.7)", position: "sticky", top: 0, zIndex: 50 }}>
-        <Btn onClick={onBack} bg="linear-gradient(135deg,#1a1a6b,#2a2a9b)" style={{ padding: "8px 16px", fontSize: "0.75rem" }}>← Hogwarts</Btn>
-        <h2 style={{ fontFamily: "'Cinzel'", fontSize: "clamp(0.85rem,4vw,1.2rem)", color: "#9090ff", letterSpacing: 4 }}>ANCIENT RUNES</h2>
-        <span />
+    <div style={{ minHeight:"100vh",background:THEME.bg,display:"flex",flexDirection:"column" }} className="fi">
+      <style>{G}</style>
+      <MagicParticles count={35} color="#6060cc"/>
+      <FogLayers/><AtmosphericLightning/>
+      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 20px",background:"rgba(6,5,10,.85)",borderBottom:"1px solid rgba(100,80,200,.15)",backdropFilter:"blur(10px)",position:"sticky",top:0,zIndex:50 }}>
+        <CineBtn onClick={onBack} variant="ghost" style={{ padding:"9px 18px",fontSize:".72rem" }}>← Back</CineBtn>
+        <p style={{ fontFamily:"'Cinzel',serif",color:"rgba(140,130,220,.8)",fontSize:".85rem",letterSpacing:".35em" }}>ANCIENT RUNES</p>
+        <div style={{ width:80 }}/>
       </div>
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px 20px 40px" }}>
-        <div style={{ maxWidth: 680, width: "100%", textAlign: "center" }}>
-          <div style={{ fontSize: 52, marginBottom: 8, animation: "runeReveal 1s ease" }}>🔮</div>
-          <h2 style={{ fontFamily: "'Cinzel Decorative'", fontSize: "clamp(1.2rem,5vw,2rem)", color: "#9090ff", letterSpacing: 4, marginBottom: 6, animation: "goldGlow 2s infinite" }}>The Trapdoor Inscription</h2>
-          <p style={{ color: "#4a4a80", fontFamily: "'Crimson Text'", fontSize: "0.85rem", letterSpacing: 3, marginBottom: 20, fontStyle: "italic" }}>{HP_CIPHER.prompt}</p>
-          <div style={{ background: "rgba(50,50,150,0.1)", border: "1px solid #4040aa44", borderRadius: 4, padding: "20px 28px", marginBottom: 16, animation: "mirrorGlow 3s ease-in-out infinite" }}>
-            <p style={{ fontFamily: "'Cinzel Decorative'", fontSize: "clamp(0.9rem,3vw,1.3rem)", color: "#a0a0ff", letterSpacing: 6, wordSpacing: 14, lineHeight: 1.8 }}>{HP_CIPHER.encrypted}</p>
+
+      <div style={{ flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"24px 20px 60px" }}>
+        <div style={{ width:"100%",maxWidth:500,display:"flex",flexDirection:"column",alignItems:"center",gap:24 }}>
+          <div style={{ animation:"runeReveal 1s ease",textAlign:"center" }}>
+            <RuneRing size={90}/>
           </div>
-          <p style={{ color: "#4a4a80", fontFamily: "'Crimson Text'", fontSize: "0.95rem", lineHeight: 1.7, marginBottom: 20, fontStyle: "italic" }}>
-            Dumbledore left this cipher on the trapdoor for the investigator he trusted most.<br />
-            Shift each letter back by 7 to reveal the truth. (A=1, G→A, H→B... Z→S)
+          <CineTitle eyebrow="TRAPDOOR INSCRIPTION" size="clamp(1.2rem,4.5vw,1.8rem)">The Cipher</CineTitle>
+          <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.silverDim,fontSize:".95rem",fontStyle:"italic",textAlign:"center",opacity:.8 }}>{CIPHER.prompt}</p>
+
+          {/* Encoded message display */}
+          <div style={{ width:"100%",background:"rgba(60,50,120,.08)",border:"1px solid rgba(100,80,200,.2)",borderRadius:3,padding:"20px 24px",textAlign:"center",animation:"mirrorGlow 4s ease-in-out infinite",boxShadow:"0 0 40px rgba(60,50,120,.1)" }}>
+            <style>{`@keyframes mirrorGlow{0%,100%{box-shadow:0 0 20px rgba(60,50,120,.1)}50%{box-shadow:0 0 50px rgba(60,50,120,.25)}}`}</style>
+            <p style={{ fontFamily:"'Cinzel',serif",fontSize:"clamp(.9rem,3.5vw,1.2rem)",color:"rgba(160,150,240,.85)",letterSpacing:".4em",wordSpacing:"1em",lineHeight:2 }}>
+              {CIPHER.encoded}
+            </p>
+          </div>
+
+          <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.silverDim,fontSize:".95rem",lineHeight:1.85,fontStyle:"italic",textAlign:"center",opacity:.75 }}>
+            Shift each letter back by 7 positions in the alphabet.<br/>
+            A→T · B→U · ... · H→A · G→Z
           </p>
-          <div style={{ background: "rgba(0,0,0,0.4)", border: "1px solid #1a1a3a", borderRadius: 4, padding: 14, marginBottom: 20 }}>
-            <p style={{ color: "#4a4a80", fontFamily: "'Cinzel'", fontSize: "0.65rem", letterSpacing: 3, marginBottom: 10 }}>SHIFT BACK BY 7 — REFERENCE TABLE</p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 3, justifyContent: "center" }}>
-              {Array.from({ length: 26 }, (_, i) => {
-                const enc = String.fromCharCode(65 + i);
-                const dec = String.fromCharCode(((i - 7 + 26) % 26) + 65);
-                return (
-                  <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 20 }}>
-                    <div style={{ color: "#9090ff", fontFamily: "'Courier Prime'", fontSize: "0.6rem" }}>{enc}</div>
-                    <div style={{ color: "#333366", fontSize: "0.5rem" }}>↓</div>
-                    <div style={{ color: "#d4af37", fontFamily: "'Courier Prime'", fontSize: "0.6rem" }}>{dec}</div>
+
+          {/* Reference table */}
+          <ParchmentCard style={{ border:"1px solid rgba(100,80,200,.15)" }}>
+            <p style={{ fontFamily:"'Cinzel',serif",color:THEME.goldDim,fontSize:".6rem",letterSpacing:".4em",marginBottom:12,textAlign:"center" }}>SHIFT REFERENCE — BACK BY 7</p>
+            <div style={{ display:"flex",flexWrap:"wrap",gap:3,justifyContent:"center" }}>
+              {Array.from({length:26},(_,i)=>{
+                const enc=String.fromCharCode(65+i);
+                const dec=String.fromCharCode(((i-7+26)%26)+65);
+                return(
+                  <div key={i} style={{ display:"flex",flexDirection:"column",alignItems:"center",minWidth:22 }}>
+                    <span style={{ color:"rgba(140,130,220,.7)",fontFamily:"'Cinzel',serif",fontSize:".55rem" }}>{enc}</span>
+                    <span style={{ color:"rgba(100,100,160,.4)",fontSize:".4rem" }}>↓</span>
+                    <span style={{ color:THEME.gold,fontFamily:"'Cinzel',serif",fontSize:".55rem" }}>{dec}</span>
                   </div>
                 );
               })}
             </div>
-          </div>
+          </ParchmentCard>
+
           {!solved ? (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+            <div style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:14,width:"100%" }}>
               <input
-                style={{ width: "100%", maxWidth: 500, background: "rgba(0,0,0,0.6)", border: `1px solid ${wrong ? "#ff4444" : "#4040aa66"}`, color: "#a0a0ff", padding: "14px 20px", fontFamily: "'Cinzel'", fontSize: "0.85rem", letterSpacing: 3, outline: "none", borderRadius: 2, textAlign: "center", animation: wrong ? "shake .5s ease" : "none" }}
-                value={input}
-                onChange={e => setInput(e.target.value.toUpperCase())}
-                onKeyDown={e => e.key === "Enter" && check()}
-                placeholder="TYPE DECODED MESSAGE..."
+                style={{ width:"100%",maxWidth:460,background:"rgba(0,0,0,.5)",border:`1px solid ${wrong?"rgba(139,26,26,.7)":"rgba(100,80,200,.3)"}`,color:"rgba(160,150,240,.9)",padding:"14px 20px",fontFamily:"'Cinzel',serif",fontSize:".88rem",letterSpacing:".3em",outline:"none",borderRadius:2,textAlign:"center",transition:"border-color .3s",animation:wrong?"shake .6s ease":"none" }}
+                value={input} onChange={e=>setInput(e.target.value.toUpperCase())}
+                onKeyDown={e=>e.key==="Enter"&&check()} placeholder="Enter decoded message"
               />
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
-                <Btn onClick={check} bg="linear-gradient(135deg,#1a1a6b,#2a2aab)">🔮 DECODE →</Btn>
-                <Btn onClick={() => setShowHint(s => !s)} bg="rgba(255,255,255,0.04)" style={{ borderColor: "#2a2a4a", color: "#4a4a80" }}>{showHint ? "Hide Hint" : "Hint?"}</Btn>
+              <div style={{ display:"flex",gap:12,flexWrap:"wrap",justifyContent:"center" }}>
+                <CineBtn onClick={check} variant="crimson">Decode</CineBtn>
+                <CineBtn onClick={()=>setHint(s=>!s)} variant="ghost" style={{ padding:"14px 24px" }}>{hint?"Conceal Hint":"Request Hint"}</CineBtn>
               </div>
-              {wrong && <p style={{ color: "#ff4444", fontFamily: "'Cinzel'", fontSize: "0.78rem", letterSpacing: 2 }}>⚠ The runes reject your answer.</p>}
-              {showHint && <p style={{ color: "#4a4a80", fontFamily: "'Crimson Text'", fontSize: "0.85rem", fontStyle: "italic", maxWidth: 400 }}>{HP_CIPHER.hint}</p>}
+              {wrong && <p style={{ color:"rgba(192,64,64,.7)",fontFamily:"'Cinzel',serif",fontSize:".68rem",letterSpacing:".3em" }}>The runes do not yield.</p>}
+              {hint  && <p style={{ color:THEME.silverDim,fontFamily:"'Cormorant Garamond',serif",fontSize:".92rem",fontStyle:"italic",textAlign:"center",opacity:.7 }}>{CIPHER.hint}</p>}
             </div>
           ) : (
-            <div style={{ background: "rgba(0,200,100,0.06)", border: "1px solid #00cc88", borderRadius: 4, padding: 28 }} className="fiu">
-              <p style={{ color: "#00cc88", fontFamily: "'Cinzel Decorative'", fontSize: "1.1rem", letterSpacing: 4, marginBottom: 10 }}>✦ DECODED ✦</p>
-              <p style={{ color: "#00ffcc", fontFamily: "'Cinzel'", fontSize: "1rem", letterSpacing: 3, marginBottom: 14 }}>"{HP_CIPHER.answer}"</p>
-              <p style={{ color: "#446655", fontFamily: "'Crimson Text'", fontSize: "0.95rem", fontStyle: "italic" }}>Dumbledore knew. He always knew. He was waiting for YOU to find it.</p>
-              <div style={{ marginTop: 16 }}><Btn onClick={onBack} bg="linear-gradient(135deg,#1a3a1a,#2a5a2a)">← Return to Hogwarts</Btn></div>
-            </div>
+            <ParchmentCard glowing className="fiu" style={{ border:"1px solid rgba(64,160,96,.35)",textAlign:"center" }}>
+              <p style={{ fontFamily:"'Cinzel',serif",color:"rgba(64,160,96,.8)",fontSize:".65rem",letterSpacing:".45em",marginBottom:14 }}>DECODED</p>
+              <GoldDivider style={{ marginBottom:16 }}/>
+              <p style={{ fontFamily:"'Cinzel',serif",color:THEME.gold,fontSize:".95rem",letterSpacing:".2em",marginBottom:14 }}>"{CIPHER.answer}"</p>
+              <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.silverDim,fontSize:".92rem",fontStyle:"italic",lineHeight:1.7 }}>
+                Dumbledore knew from the beginning.<br/>
+                He was waiting for the right person to find it.<br/>
+                He was waiting for you.
+              </p>
+              <GoldDivider style={{ margin:"18px 0" }}/>
+              <CineBtn onClick={onBack} variant="emerald">Return to Investigation</CineBtn>
+            </ParchmentCard>
           )}
         </div>
       </div>
@@ -459,63 +437,87 @@ function RunesCipher({ onSolve, solved, onBack }) {
 /* ══════════════════════════════════════════════════════════
    ACCUSATION
 ══════════════════════════════════════════════════════════ */
-function HPAccusation({ clues, interrogated, cipherSolved, onAccuse, onBack }) {
-  const [selected, setSelected] = useState(null);
-  const [result, setResult] = useState(null);
-  const foundKey = clues.filter(c => c.found && c.key).length;
-  const ready = foundKey >= 5 && interrogated.length >= 3 && cipherSolved;
+function Accusation({ clues, interrogated, cipherSolved, onAccuse, onBack }) {
+  const [selected,setSelected] = useState(null);
+  const [result,setResult]     = useState(null);
+  const foundKey = clues.filter(c=>c.found&&c.key).length;
+  const ready = foundKey>=5 && interrogated.length>=3 && cipherSolved;
 
   return (
-    <div style={{ minHeight: "100vh", background: "radial-gradient(ellipse at center,#100005,#050308)", paddingBottom: 60 }} className="fi">
-      <Stars count={40} />
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid #200010", background: "rgba(0,0,0,0.7)", position: "sticky", top: 0, zIndex: 50 }}>
-        <Btn onClick={onBack} bg="rgba(255,255,255,0.04)" style={{ borderColor: "#2a1e08", color: "#4a3a20", padding: "8px 16px", fontSize: "0.75rem" }}>← Back</Btn>
-        <h2 style={{ fontFamily: "'Cinzel'", fontSize: "clamp(0.9rem,4vw,1.2rem)", color: "#ff4444", letterSpacing: 4, animation: "goldGlow 2s infinite" }}>THE ACCUSATION</h2>
-        <span />
+    <div style={{ minHeight:"100vh",background:THEME.bg,paddingBottom:60 }} className="fi">
+      <style>{G}</style>
+      <MagicParticles count={30}/><FogLayers/><AtmosphericLightning/>
+      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 20px",background:"rgba(6,5,10,.85)",borderBottom:"1px solid rgba(139,26,26,.2)",backdropFilter:"blur(10px)",position:"sticky",top:0,zIndex:50 }}>
+        <CineBtn onClick={onBack} variant="ghost" style={{ padding:"9px 18px",fontSize:".72rem" }}>← Back</CineBtn>
+        <p style={{ fontFamily:"'Cinzel',serif",color:"rgba(192,64,64,.8)",fontSize:".85rem",letterSpacing:".3em" }}>THE ACCUSATION</p>
+        <div style={{ width:80 }}/>
       </div>
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: "28px 20px", textAlign: "center" }}>
-        <div style={{ display: "inline-block", border: "2px solid #8b0000", color: "#8b0000", padding: "6px 24px", fontFamily: "'Cinzel'", fontSize: "0.85rem", letterSpacing: 3, transform: "rotate(-2deg)", marginBottom: 20 }}>⚖️ NAME THE THIEF</div>
-        <h2 style={{ fontFamily: "'Cinzel Decorative'", fontSize: "clamp(1.4rem,5vw,2rem)", color: "#ff4444", letterSpacing: 4, marginBottom: 8 }}>THE FINAL VERDICT</h2>
-        <p style={{ color: "#4a2020", fontFamily: "'Crimson Text'", fontSize: "1rem", fontStyle: "italic", marginBottom: 24 }}>Choose carefully. A wrong accusation could give Voldemort time to escape.</p>
+
+      <div style={{ width:"100%",maxWidth:520,margin:"0 auto",padding:"28px 20px",display:"flex",flexDirection:"column",gap:22 }}>
+        <CineTitle eyebrow="FINAL JUDGEMENT" size="clamp(1.3rem,5vw,2rem)">Name the Thief</CineTitle>
+        <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.silverDim,fontSize:".95rem",fontStyle:"italic",textAlign:"center",opacity:.75 }}>
+          Choose with precision. A wrong accusation gives Voldemort time.
+        </p>
+
         {!ready && (
-          <div style={{ background: "rgba(139,105,20,0.07)", border: "1px solid #8b691433", borderRadius: 4, padding: 16, marginBottom: 24 }}>
-            <p style={{ color: "#8b6914", fontFamily: "'Cinzel'", fontSize: "0.78rem", letterSpacing: 1, marginBottom: 6 }}>⚠ Gather more evidence before making your accusation.</p>
-            <p style={{ color: "#4a3a20", fontFamily: "'Cinzel'", fontSize: "0.68rem", letterSpacing: 1 }}>Key evidence: {foundKey}/5 · Suspects: {interrogated.length}/3 · Runes: {cipherSolved ? "✓" : "✗"}</p>
-          </div>
+          <ParchmentCard style={{ border:"1px solid rgba(201,168,76,.12)",textAlign:"center" }}>
+            <p style={{ fontFamily:"'Cinzel',serif",color:THEME.goldDim,fontSize:".68rem",letterSpacing:".3em",marginBottom:8 }}>INSUFFICIENT EVIDENCE</p>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.silverDim,fontSize:".88rem",opacity:.7 }}>
+              Key evidence: {foundKey}/5 · Suspects: {interrogated.length}/3 · Cipher: {cipherSolved?"✓":"✗"}
+            </p>
+          </ParchmentCard>
         )}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(115px,1fr))", gap: 10, marginBottom: 24 }}>
-          {HP_SUSPECTS.map(s => (
-            <div key={s.id} style={{ border: `1px solid ${selected === s.id ? "#ff4444" : "#1a1208"}`, borderRadius: 4, padding: "14px 10px", textAlign: "center", cursor: "pointer", transition: "all .3s", background: selected === s.id ? "rgba(255,68,68,0.07)" : "rgba(255,255,255,0.01)", transform: selected === s.id ? "scale(1.04)" : "scale(1)", display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }} onClick={() => { setSelected(s.id); setResult(null); }}>
-              <span style={{ fontSize: 30 }}>{s.icon}</span>
-              <div style={{ fontFamily: "'Cinzel'", fontSize: "0.68rem", color: "#d4af37", letterSpacing: 1 }}>{s.name}</div>
-              <div style={{ color: "#4a3a20", fontFamily: "'Crimson Text'", fontSize: "0.7rem" }}>{s.role}</div>
-              {selected === s.id && <div style={{ background: "rgba(255,68,68,0.12)", border: "1px solid #ff4444", color: "#ff4444", padding: "2px 10px", fontSize: "0.6rem", fontFamily: "'Cinzel'", letterSpacing: 2, borderRadius: 2 }}>ACCUSED</div>}
+
+        <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
+          {SUSPECTS.map(s=>(
+            <div key={s.id} onClick={()=>{setSelected(s.id);setResult(null);}} style={{
+              background: selected===s.id ? "linear-gradient(145deg,#1e1020,#18101a)" : "linear-gradient(145deg,#121020,#0e0c18)",
+              border:`1px solid ${selected===s.id?"rgba(192,64,64,.45)":"rgba(201,168,76,.08)"}`,
+              borderRadius:3, padding:"16px 20px", cursor:"pointer",
+              transition:"all .4s cubic-bezier(.23,1,.32,1)",
+            }}>
+              <div style={{ display:"flex",alignItems:"center",gap:14 }}>
+                <span style={{ fontSize:28,filter:`drop-shadow(0 0 8px ${selected===s.id?"rgba(192,64,64,.4)":"rgba(201,168,76,.2)"})` }}>{s.icon}</span>
+                <div style={{ flex:1 }}>
+                  <p style={{ fontFamily:"'Cinzel',serif",color:selected===s.id?"rgba(220,100,100,.9)":THEME.gold,fontSize:".85rem",letterSpacing:".15em" }}>{s.name}</p>
+                  <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.goldDim,fontSize:".8rem",fontStyle:"italic" }}>{s.role}</p>
+                </div>
+                {selected===s.id && <span style={{ fontFamily:"'Cinzel',serif",fontSize:".6rem",letterSpacing:".2em",color:"rgba(192,64,64,.7)" }}>ACCUSED</span>}
+              </div>
             </div>
           ))}
         </div>
-        {selected && !result && (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }} className="fiu">
-            <div style={{ display: "flex", gap: 16, alignItems: "center", justifyContent: "center", flexWrap: "wrap" }}>
-              <span style={{ fontSize: 48, animation: "wandPulse 2s infinite" }}>🔍</span>
-              <p style={{ fontFamily: "'Crimson Text'", fontSize: "1.05rem", color: "#a89070", fontStyle: "italic", maxWidth: 280, lineHeight: 1.7 }}>"I accuse <strong style={{ color: "#ff4444" }}>{HP_SUSPECTS.find(s => s.id === selected)?.name}</strong> of stealing the Philosopher's Stone."</p>
-            </div>
-            <Btn onClick={() => { const c = selected === "quirrell"; setResult(c ? "correct" : "wrong"); if (c) setTimeout(() => onAccuse(true), 1200); }} bg="linear-gradient(135deg,#8b0000,#aa1a1a)" style={{ border: "1.5px solid #ff4444", color: "#ffaaaa" }}>
-              ⚡ MAKE ACCUSATION
-            </Btn>
+
+        {selected&&!result && (
+          <div className="fiu" style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:16 }}>
+            <ParchmentCard style={{ textAlign:"center",border:"1px solid rgba(192,64,64,.2)" }}>
+              <p style={{ fontFamily:"'IM Fell English',serif",color:THEME.parchDark,fontSize:"1rem",lineHeight:1.8 }}>
+                "I hereby accuse <strong style={{ color:"rgba(220,100,100,.9)" }}>{SUSPECTS.find(s=>s.id===selected)?.name}</strong> of stealing the Philosopher's Stone from Hogwarts."
+              </p>
+            </ParchmentCard>
+            <CineBtn onClick={()=>{ const c=selected==="quirrell"; setResult(c?"correct":"wrong"); if(c)setTimeout(()=>onAccuse(true),1400); }} variant="crimson" style={{ padding:"15px 40px" }}>
+              Make Accusation
+            </CineBtn>
           </div>
         )}
-        {result === "wrong" && (
-          <div style={{ background: "rgba(255,68,68,0.05)", border: "1px solid #ff444433", borderRadius: 4, padding: 24 }} className="fiu">
-            <p style={{ color: "#ff4444", fontFamily: "'Cinzel Decorative'", fontSize: "1.1rem", letterSpacing: 4, marginBottom: 8 }}>✗ WRONG ACCUSATION</p>
-            <p style={{ color: "#886666", fontFamily: "'Crimson Text'", fontSize: "0.95rem", fontStyle: "italic", marginBottom: 16 }}>The evidence doesn't support this. Look more carefully at the runes...</p>
-            <Btn onClick={() => { setSelected(null); setResult(null); }} bg="rgba(255,255,255,0.04)" style={{ borderColor: "#2a1e08", color: "#4a3a20" }}>Try Again</Btn>
-          </div>
+
+        {result==="wrong" && (
+          <ParchmentCard className="fiu" style={{ border:"1px solid rgba(139,26,26,.3)",textAlign:"center" }}>
+            <p style={{ fontFamily:"'Cinzel',serif",color:"rgba(192,64,64,.8)",fontSize:".72rem",letterSpacing:".4em",marginBottom:10 }}>INCORRECT</p>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.silverDim,fontSize:".95rem",fontStyle:"italic",marginBottom:16,opacity:.8 }}>
+              The evidence does not support this conclusion.<br/>Return to the investigation.
+            </p>
+            <CineBtn onClick={()=>{setSelected(null);setResult(null);}} variant="ghost">Reconsider</CineBtn>
+          </ParchmentCard>
         )}
-        {result === "correct" && (
-          <div style={{ background: "rgba(0,200,100,0.05)", border: "1px solid #00cc88", borderRadius: 4, padding: 24 }} className="fiu">
-            <p style={{ color: "#00cc88", fontFamily: "'Cinzel Decorative'", fontSize: "1.2rem", letterSpacing: 4, marginBottom: 8 }}>✓ CORRECT!</p>
-            <p style={{ color: "#66cc88", fontFamily: "'Crimson Text'", fontSize: "1rem", fontStyle: "italic" }}>The turban falls. The truth is revealed. The Stone is safe...</p>
-          </div>
+
+        {result==="correct" && (
+          <ParchmentCard className="fiu" style={{ border:"1px solid rgba(64,160,96,.3)",textAlign:"center" }}>
+            <p style={{ fontFamily:"'Cinzel',serif",color:"rgba(64,160,96,.8)",fontSize:".72rem",letterSpacing:".4em",marginBottom:10 }}>CORRECT</p>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.silverDim,fontSize:"1rem",fontStyle:"italic",opacity:.8 }}>
+              The turban falls. The truth surfaces.<br/>The Stone is safe.
+            </p>
+          </ParchmentCard>
         )}
       </div>
     </div>
@@ -525,58 +527,64 @@ function HPAccusation({ clues, interrogated, cipherSolved, onAccuse, onBack }) {
 /* ══════════════════════════════════════════════════════════
    VICTORY
 ══════════════════════════════════════════════════════════ */
-function HPVictory() {
+function Victory() {
   return (
-    <div style={{ minHeight: "100vh", background: "radial-gradient(ellipse at center,#0a0a00,#050308)", paddingBottom: 60, display: "flex", justifyContent: "center" }} className="fi">
-      <Confetti /><Stars count={80} /><Candles />
-      <div style={{ maxWidth: 680, width: "100%", padding: "32px 20px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
-        <div style={{ fontSize: 80, animation: "wandPulse 2s infinite" }}>⚡</div>
-        <h1 style={{ fontFamily: "'Cinzel Decorative'", fontSize: "clamp(1.8rem,7vw,3rem)", color: "#d4af37", letterSpacing: 4, animation: "goldGlow 1.5s infinite" }}>CASE SOLVED!</h1>
-        <div style={{ background: "linear-gradient(135deg,#8b6914,#d4a017)", color: "#0d0a06", padding: "8px 28px", fontFamily: "'Cinzel'", fontSize: "0.85rem", letterSpacing: 3, borderRadius: 24 }}>🏆 MASTER AUROR — DETECTIVE AMRITHA</div>
-        <div style={{ background: "linear-gradient(145deg,#1a1208,#0f0a04)", border: "1px solid #d4af3766", borderRadius: 4, padding: "24px 20px", width: "100%", textAlign: "left" }}>
-          <p style={{ color: "#8b6914", fontFamily: "'Cinzel'", fontSize: "0.75rem", letterSpacing: 4, textAlign: "center", marginBottom: 14 }}>◆ OFFICIAL CASE RESOLUTION ◆</p>
-          <p style={{ fontFamily: "'Crimson Text'", fontSize: "1.05rem", color: "#c8b89a", lineHeight: 1.8, marginBottom: 16, textAlign: "center" }}>
-            <strong style={{ color: "#ff4444" }}>Professor Quirinus Quirrell</strong>, possessed by Lord Voldemort, is hereby found guilty of attempting to steal the Philosopher's Stone from Hogwarts.
+    <div style={{ minHeight:"100vh",background:THEME.bg,paddingBottom:80,display:"flex",justifyContent:"center" }} className="fi">
+      <style>{G}</style>
+      <CineConfetti/>
+      <MagicParticles count={70} color="#c9a84c"/>
+      <FogLayers/><AtmosphericLightning/><CinematicCastle/>
+
+      <div style={{ width:"100%",maxWidth:520,padding:"40px 20px",display:"flex",flexDirection:"column",alignItems:"center",gap:24,position:"relative",zIndex:10 }}>
+        <RuneRing size={110}/>
+        <CineTitle eyebrow="THE INVESTIGATION IS COMPLETE" size="clamp(1.8rem,7vw,3rem)">Case Solved</CineTitle>
+        <GoldDivider/>
+
+        <ParchmentCard glowing>
+          <p style={{ fontFamily:"'Cinzel',serif",color:THEME.goldDim,fontSize:".62rem",letterSpacing:".45em",textAlign:"center",marginBottom:14 }}>OFFICIAL VERDICT</p>
+          <p style={{ fontFamily:"'IM Fell English',serif",fontSize:"1rem",color:THEME.parchDark,lineHeight:1.9,textAlign:"center",marginBottom:16 }}>
+            <strong style={{ color:"rgba(192,64,64,.9)" }}>Professor Quirinus Quirrell</strong>, acting under the possession of Lord Voldemort, is hereby found guilty of attempting to steal the Philosopher's Stone.
           </p>
-          <p style={{ color: "#4a3a20", fontFamily: "'Cinzel'", fontSize: "0.68rem", letterSpacing: 3, marginBottom: 10 }}>EVIDENCE THAT BROKE THE CASE:</p>
+          <GoldDivider style={{ marginBottom:14 }}/>
+          <p style={{ fontFamily:"'Cinzel',serif",color:THEME.goldDim,fontSize:".6rem",letterSpacing:".35em",marginBottom:12 }}>EVIDENCE</p>
           {[
-            "Handkerchief with initials Q.Q. found in the Potions dungeon",
-            "His refined flute matched the instrument found near sleeping Fluffy",
-            "His violet ink appeared in the Restricted Section sign-out log",
-            "Letter from 'Q.Q. to R.Q.' — Quirrell to his master Voldemort",
-            "Felix Felicis traces matched his known apothecary purchases",
-            "Peeves spotted him near the third-floor corridor at 11:20 PM",
-            "Hagrid confirmed a 'turban-wearing stranger' asked about Fluffy's weakness",
-            "Ancient Runes decoded: QUIRRELL WAS THE THIEF",
-            "The Mirror of Erised note: 'I see myself holding it. I always have.'",
-          ].map((e, i) => (
-            <div key={i} style={{ display: "flex", gap: 10, padding: "6px 0", borderBottom: "1px solid #1a1208" }}>
-              <span style={{ color: "#d4af37", flexShrink: 0 }}>⚡</span>
-              <span style={{ color: "#a89070", fontFamily: "'Cinzel'", fontSize: "0.75rem", letterSpacing: 1 }}>{e}</span>
+            "Handkerchief Q.Q. — Potions dungeon","Refined flute — used to subdue Fluffy",
+            "Violet ink — Restricted Section sign-out log","Letter: Q.Q. to R.Q. — Quirrell to Voldemort",
+            "Felix Felicis traces — his apothecary purchases","Peeves: spotted him near the corridor at 11:20",
+            "Hagrid: confirmed turban-wearing stranger at the pub","Cipher decoded: QUIRRELL WAS THE THIEF",
+            "Mirror of Erised note: 'I see myself holding it. I always have.'",
+          ].map((e,i)=>(
+            <div key={i} style={{ display:"flex",gap:10,padding:"6px 0",borderBottom:"1px solid rgba(201,168,76,.05)" }}>
+              <span style={{ color:"rgba(201,168,76,.3)",flexShrink:0,fontSize:".75rem" }}>✦</span>
+              <span style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.silverDim,fontSize:".88rem" }}>{e}</span>
             </div>
           ))}
-        </div>
-        <div style={{ background: "linear-gradient(135deg,rgba(139,105,20,0.12),rgba(139,26,26,0.12))", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 8, padding: 28, textAlign: "center", width: "100%" }}>
-          <p style={{ fontFamily: "'Cinzel Decorative'", fontSize: "clamp(1.1rem,5vw,1.8rem)", color: "#d4af37", letterSpacing: 3, marginBottom: 16, animation: "goldGlow 2s infinite" }}>
-            ⚡ Happy Birthday, Amritha! ⚡
+        </ParchmentCard>
+
+        <div style={{ width:"100%",background:"linear-gradient(145deg,rgba(30,20,10,.8),rgba(20,15,8,.8))",border:"1px solid rgba(201,168,76,.2)",borderRadius:3,padding:"32px 24px",textAlign:"center",boxShadow:"0 0 60px rgba(201,168,76,.06)" }}>
+          <p style={{ fontFamily:"'Cinzel',serif",color:THEME.gold,fontSize:"clamp(.85rem,3.5vw,1.1rem)",letterSpacing:".15em",marginBottom:20,animation:"goldPulse 3s ease-in-out infinite" }}>
+            Happy Birthday, Amritha
           </p>
-          <p style={{ fontFamily: "'Crimson Text'", fontSize: "1.05rem", color: "#c8b89a", lineHeight: 2.1 }}>
-            You cracked the cipher, interrogated every suspect,<br />
-            explored every shadowed corridor of Hogwarts,<br />
-            and found the truth hidden in the runes.<br /><br />
-            <em style={{ color: "#d4af37" }}>
-              "You are the brightest witch of your age, Amritha.<br />
-              Not because of what you know —<br />
-              but because of how fiercely you love,<br />
-              how bravely you seek,<br />
-              and how brilliantly you shine.<br /><br />
-              May your 25th year be full of magic<br />
-              that even Dumbledore couldn't predict. 💕"
+          <GoldDivider style={{ marginBottom:20 }}/>
+          <p style={{ fontFamily:"'IM Fell English',serif",fontSize:"clamp(.95rem,3vw,1.1rem)",color:THEME.parchDark,lineHeight:2.2 }}>
+            You cracked the cipher.<br/>
+            You interrogated every suspect.<br/>
+            You explored every shadowed corridor,<br/>
+            and found the truth hidden in the runes.<br/><br/>
+            <em style={{ color:THEME.gold }}>
+              "You are the brightest witch of your age —<br/>
+              not because of what you know,<br/>
+              but because of how fiercely you love,<br/>
+              how bravely you seek,<br/>
+              and how brilliantly you shine.<br/><br/>
+              May your twenty-second year hold<br/>
+              magic even Dumbledore couldn't predict."
             </em>
           </p>
-          <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 16, fontSize: "1.6rem" }}>
-            {["⚡", "🦁", "📚", "🦉", "🪄", "🎂", "✨", "💕"].map((e, i) => (
-              <span key={i} style={{ animation: `heartbeat 1.2s ${i * 0.15}s infinite` }}>{e}</span>
+          <GoldDivider style={{ margin:"24px 0" }}/>
+          <div style={{ display:"flex",justifyContent:"center",gap:12,fontSize:"1.3rem",flexWrap:"wrap" }}>
+            {["⚡","🦁","📖","🦉","🪄","✦","💕"].map((e,i)=>(
+              <span key={i} style={{ animation:`breathe ${1.8+i*.2}s ${i*.18}s ease-in-out infinite`,filter:"drop-shadow(0 0 8px rgba(201,168,76,.35))" }}>{e}</span>
             ))}
           </div>
         </div>
@@ -586,96 +594,113 @@ function HPVictory() {
 }
 
 /* ══════════════════════════════════════════════════════════
-   HOGWARTS MAP HUB
+   INVESTIGATION HUB
 ══════════════════════════════════════════════════════════ */
-function HogwartsMap({ clues, interrogated, cipherSolved, setView }) {
-  const [showBook, setShowBook] = useState(false);
-  const found = clues.filter(c => c.found).length;
+function InvestigationHub({ clues, interrogated, cipherSolved, setView }) {
+  const [notes,setNotes] = useState(false);
+  const found = clues.filter(c=>c.found).length;
   const total = clues.length;
+  const pct = Math.round((found/total)*100);
 
   return (
-    <div style={{ minHeight: "100vh", background: "radial-gradient(ellipse at top,#0d0a06,#050308)", position: "relative" }}>
-      <Stars count={60} /><Candles />
-      {showBook && <Spellbook clues={clues} onClose={() => setShowBook(false)} />}
+    <div style={{ minHeight:"100vh",background:THEME.bg,position:"relative",paddingBottom:260 }}>
+      <style>{G}</style>
+      <MagicParticles count={50}/><FogLayers/><AtmosphericLightning/><CinematicCastle/>
+      {notes && <CaseNotes clues={clues} onClose={()=>setNotes(false)}/>}
+
       {/* HUD */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 20px", background: "rgba(0,0,0,0.8)", borderBottom: "1px solid #1a1208", flexWrap: "wrap", gap: 10, position: "sticky", top: 0, zIndex: 500 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 36, animation: "wandPulse 2s infinite" }}>🔍</span>
-          <div>
-            <p style={{ fontFamily: "'Cinzel'", color: "#d4af37", fontSize: "0.85rem", letterSpacing: 2 }}>Det. Amritha</p>
-            <p style={{ color: "#4a3a20", fontFamily: "'Cinzel'", fontSize: "0.58rem", letterSpacing: 2 }}>Hogwarts Auror</p>
-          </div>
+      <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 20px",background:"rgba(6,5,10,.88)",borderBottom:"1px solid rgba(201,168,76,.1)",backdropFilter:"blur(12px)",flexWrap:"wrap",gap:10,position:"sticky",top:0,zIndex:500 }}>
+        <div>
+          <p style={{ fontFamily:"'Cinzel',serif",color:THEME.gold,fontSize:".75rem",letterSpacing:".2em" }}>Detective Amritha</p>
+          <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.goldDim,fontSize:".7rem",fontStyle:"italic" }}>Hogwarts Investigation</p>
         </div>
-        <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
-          {[["CLUES", `${found}/${total}`, "#d4af37"], ["SUSPECTS", `${interrogated.length}/${HP_SUSPECTS.length}`, "#d4af37"], ["RUNES", cipherSolved ? "✓" : "✗", cipherSolved ? "#00cc88" : "#ff4444"]].map(([l, v, c]) => (
-            <div key={l} style={{ textAlign: "center" }}>
-              <p style={{ color: "#4a3a20", fontFamily: "'Cinzel'", fontSize: "0.56rem", letterSpacing: 2 }}>{l}</p>
-              <p style={{ color: c, fontFamily: "'Cinzel Decorative'", fontSize: "0.95rem", letterSpacing: 2 }}>{v}</p>
+        <div style={{ display:"flex",gap:20 }}>
+          {[["CLUES",`${found}/${total}`,THEME.gold],["SUSPECTS",`${interrogated.length}/${SUSPECTS.length}`,THEME.gold],["CIPHER",cipherSolved?"✓":"✗",cipherSolved?"rgba(64,160,96,.8)":"rgba(192,64,64,.7)"]].map(([l,v,c])=>(
+            <div key={l} style={{ textAlign:"center" }}>
+              <p style={{ fontFamily:"'Cinzel',serif",color:THEME.goldDim,fontSize:".52rem",letterSpacing:".4em" }}>{l}</p>
+              <p style={{ fontFamily:"'Cinzel',serif",color:c,fontSize:".88rem",letterSpacing:".15em" }}>{v}</p>
             </div>
           ))}
         </div>
-        <button style={{ background: "rgba(212,175,55,0.08)", border: "1px solid #d4af3733", color: "#d4af37", padding: "8px 14px", cursor: "pointer", fontFamily: "'Cinzel'", fontSize: "0.68rem", letterSpacing: 2, borderRadius: 2 }} onClick={() => setShowBook(true)}>📜 Spell Book</button>
+        <CineBtn onClick={()=>setNotes(true)} variant="ghost" style={{ padding:"8px 16px",fontSize:".68rem" }}>Case Notes</CineBtn>
       </div>
 
-      <div style={{ maxWidth: 760, margin: "0 auto", padding: "24px 20px", paddingBottom: 60 }}>
+      <div style={{ width:"100%",maxWidth:520,margin:"0 auto",padding:"28px 20px" }}>
         {/* Title */}
-        <div style={{ textAlign: "center", marginBottom: 28 }}>
-          <p style={{ color: "#4a3a20", fontFamily: "'Cinzel'", fontSize: "0.68rem", letterSpacing: 5, marginBottom: 6 }}>A HOGWARTS MYSTERY</p>
-          <h1 style={{ fontFamily: "'Cinzel Decorative'", fontSize: "clamp(1.3rem,6vw,2.5rem)", color: "#d4af37", letterSpacing: 4, animation: "goldGlow 3s infinite", marginBottom: 4 }}>THE PHILOSOPHER'S THIEF</h1>
-          <p style={{ color: "#4a3a20", fontFamily: "'Crimson Text'", fontSize: "0.8rem", letterSpacing: 3, fontStyle: "italic", marginBottom: 14 }}>Hogwarts · 11:47 PM · A storm gathers</p>
-          <div style={{ width: "100%", maxWidth: 360, height: 3, background: "#1a1208", borderRadius: 2, margin: "0 auto 6px" }}>
-            <div style={{ width: `${(found / total) * 100}%`, height: "100%", background: "linear-gradient(90deg,#8b6914,#d4af37)", borderRadius: 2, transition: "width .8s" }} />
+        <div style={{ textAlign:"center",marginBottom:28 }}>
+          <p style={{ fontFamily:"'Cinzel',serif",color:THEME.goldDim,fontSize:".6rem",letterSpacing:".55em",marginBottom:10 }}>A HOGWARTS MYSTERY</p>
+          <h1 style={{ fontFamily:"'Cinzel',serif",fontWeight:700,fontSize:"clamp(1.3rem,5.5vw,2.2rem)",color:THEME.gold,letterSpacing:".06em",lineHeight:1.2,textShadow:"0 0 40px rgba(201,168,76,.25)",animation:"goldPulse 4s ease-in-out infinite" }}>
+            The Philosopher's Thief
+          </h1>
+          <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.silverDim,fontSize:".82rem",letterSpacing:".15em",fontStyle:"italic",marginTop:6,opacity:.7 }}>Hogwarts · 11:47 PM · A storm gathers</p>
+          {/* Progress */}
+          <div style={{ width:"100%",maxWidth:320,height:1,background:"rgba(201,168,76,.1)",borderRadius:1,margin:"16px auto 6px" }}>
+            <div style={{ width:`${pct}%`,height:"100%",background:"rgba(201,168,76,.4)",borderRadius:1,transition:"width 1s ease" }}/>
           </div>
-          <p style={{ color: "#2a1e08", fontFamily: "'Cinzel'", fontSize: "0.65rem", letterSpacing: 2 }}>{Math.round((found / total) * 100)}% investigated</p>
+          <p style={{ fontFamily:"'Cinzel',serif",color:"rgba(201,168,76,.3)",fontSize:".55rem",letterSpacing:".4em" }}>{pct}% INVESTIGATED</p>
         </div>
 
-        {/* Rooms */}
-        <div style={{ marginBottom: 26 }}>
-          <h3 style={{ fontFamily: "'Cinzel'", color: "#8b6914", fontSize: "0.78rem", letterSpacing: 4, marginBottom: 12, textAlign: "center" }}>🏰 EXPLORE HOGWARTS</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(128px,1fr))", gap: 10 }}>
-            {HP_ROOMS.map(room => {
-              const rc = clues.filter(c => room.clues.some(x => x.id === c.id) && c.found).length;
-              const done = rc === room.clues.length;
-              return (
-                <div key={room.id} style={{ border: `1px solid ${done ? "#d4af37" : "#1a1208"}`, borderRadius: 4, padding: "14px 10px", textAlign: "center", cursor: "pointer", transition: "all .3s", background: done ? "rgba(212,175,55,0.06)" : "rgba(255,255,255,0.01)", display: "flex", flexDirection: "column", gap: 5, alignItems: "center" }} onClick={() => setView({ type: "room", id: room.id })}>
-                  <span style={{ fontSize: 26 }}>{room.icon}</span>
-                  <div style={{ fontFamily: "'Cinzel'", fontSize: "0.68rem", color: "#d4af37", letterSpacing: 1 }}>{room.name}</div>
-                  <div style={{ color: "#4a3a20", fontFamily: "'Cinzel'", fontSize: "0.6rem", letterSpacing: 2 }}>{rc}/{room.clues.length}</div>
-                  {done && <div style={{ color: "#8b6914", fontFamily: "'Cinzel'", fontSize: "0.56rem", letterSpacing: 2 }}>✓ CLEARED</div>}
-                </div>
-              );
-            })}
-          </div>
+        {/* Locations */}
+        <p style={{ fontFamily:"'Cinzel',serif",color:THEME.goldDim,fontSize:".6rem",letterSpacing:".5em",marginBottom:12,textAlign:"center" }}>LOCATIONS</p>
+        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:8,marginBottom:22 }}>
+          {ROOMS.map(room=>{
+            const rc=clues.filter(c=>room.clues.some(x=>x.id===c.id)&&c.found).length;
+            const cleared=rc===room.clues.length;
+            return(
+              <div key={room.id} onClick={()=>setView({type:"room",id:room.id})} style={{
+                background: cleared ? "linear-gradient(145deg,#181424,#141020)" : "linear-gradient(145deg,#111020,#0e0c18)",
+                border:`1px solid ${cleared?"rgba(201,168,76,.3)":"rgba(201,168,76,.07)"}`,
+                borderRadius:3, padding:"14px 10px", textAlign:"center", cursor:"pointer",
+                transition:"all .4s cubic-bezier(.23,1,.32,1)",
+                display:"flex",flexDirection:"column",gap:5,alignItems:"center",
+                boxShadow: cleared ? "0 0 20px rgba(201,168,76,.06)" : "none",
+              }}>
+                <span style={{ fontSize:22,opacity:cleared?.9:.5,filter:cleared?"drop-shadow(0 0 6px rgba(201,168,76,.3))":"none",transition:"all .3s" }}>{room.icon}</span>
+                <p style={{ fontFamily:"'Cinzel',serif",fontSize:".62rem",color:cleared?THEME.gold:"rgba(201,168,76,.4)",letterSpacing:".1em" }}>{room.name}</p>
+                <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.goldDim,fontSize:".7rem" }}>{rc}/{room.clues.length}</p>
+                {cleared&&<p style={{ fontFamily:"'Cinzel',serif",color:"rgba(201,168,76,.4)",fontSize:".52rem",letterSpacing:".35em" }}>CLEARED</p>}
+              </div>
+            );
+          })}
         </div>
 
         {/* Suspects */}
-        <div style={{ marginBottom: 26 }}>
-          <h3 style={{ fontFamily: "'Cinzel'", color: "#8b6914", fontSize: "0.78rem", letterSpacing: 4, marginBottom: 12, textAlign: "center" }}>🎭 INTERROGATE SUSPECTS</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(108px,1fr))", gap: 10 }}>
-            {HP_SUSPECTS.map(s => (
-              <div key={s.id} style={{ border: `1px solid ${interrogated.includes(s.id) ? "#d4af37" : "#1a1208"}`, borderRadius: 4, padding: "12px 8px", textAlign: "center", cursor: "pointer", transition: "all .3s", background: interrogated.includes(s.id) ? "rgba(212,175,55,0.05)" : "rgba(255,255,255,0.01)", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }} onClick={() => setView({ type: "interrogation", id: s.id })}>
-                <span style={{ fontSize: 24 }}>{s.icon}</span>
-                <div style={{ fontFamily: "'Cinzel'", fontSize: "0.65rem", color: "#d4af37", letterSpacing: 1 }}>{s.name}</div>
-                <div style={{ color: "#4a3a20", fontFamily: "'Crimson Text'", fontSize: "0.68rem" }}>{s.role}</div>
-                {interrogated.includes(s.id) && <div style={{ color: "#8b6914", fontFamily: "'Cinzel'", fontSize: "0.56rem", letterSpacing: 2 }}>QUESTIONED</div>}
-              </div>
-            ))}
-          </div>
+        <p style={{ fontFamily:"'Cinzel',serif",color:THEME.goldDim,fontSize:".6rem",letterSpacing:".5em",marginBottom:12,textAlign:"center" }}>PERSONS OF INTEREST</p>
+        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(100px,1fr))",gap:8,marginBottom:22 }}>
+          {SUSPECTS.map(s=>(
+            <div key={s.id} onClick={()=>setView({type:"interrogation",id:s.id})} style={{
+              background: interrogated.includes(s.id) ? "linear-gradient(145deg,#181424,#141020)" : "linear-gradient(145deg,#111020,#0e0c18)",
+              border:`1px solid ${interrogated.includes(s.id)?"rgba(201,168,76,.25)":"rgba(201,168,76,.07)"}`,
+              borderRadius:3, padding:"12px 8px", textAlign:"center", cursor:"pointer",
+              transition:"all .4s cubic-bezier(.23,1,.32,1)", display:"flex",flexDirection:"column",alignItems:"center",gap:4,
+            }}>
+              <span style={{ fontSize:22,opacity:interrogated.includes(s.id)?.9:.45,filter:interrogated.includes(s.id)?"drop-shadow(0 0 6px rgba(201,168,76,.3))":"none",transition:"all .3s" }}>{s.icon}</span>
+              <p style={{ fontFamily:"'Cinzel',serif",fontSize:".6rem",color:interrogated.includes(s.id)?THEME.gold:"rgba(201,168,76,.35)",letterSpacing:".1em" }}>{s.name}</p>
+              <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.goldDim,fontSize:".68rem" }}>{s.role}</p>
+              {interrogated.includes(s.id)&&<p style={{ fontFamily:"'Cinzel',serif",color:"rgba(201,168,76,.35)",fontSize:".5rem",letterSpacing:".3em" }}>INTERVIEWED</p>}
+            </div>
+          ))}
         </div>
 
-        {/* Special actions */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <div style={{ border: `1px solid ${cipherSolved ? "#00cc88" : "#1a1a4a"}`, borderRadius: 4, padding: "18px 10px", textAlign: "center", cursor: "pointer", transition: "all .3s", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }} onClick={() => setView({ type: "cipher" })}>
-            <span style={{ fontSize: 30 }}>🔮</span>
-            <div style={{ fontFamily: "'Cinzel'", fontSize: "0.78rem", color: cipherSolved ? "#00cc88" : "#9090ff", letterSpacing: 2 }}>Ancient Runes</div>
-            <div style={{ color: "#4a3a20", fontFamily: "'Crimson Text'", fontSize: "0.68rem" }}>Decode the inscription</div>
-            {cipherSolved && <div style={{ color: "#00cc88", fontFamily: "'Cinzel'", fontSize: "0.6rem", letterSpacing: 2 }}>✓ SOLVED</div>}
-          </div>
-          <div style={{ border: "1px solid #4a0000", borderRadius: 4, padding: "18px 10px", textAlign: "center", cursor: "pointer", transition: "all .3s", background: "rgba(255,0,0,0.02)", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }} onClick={() => setView({ type: "accuse" })}>
-            <span style={{ fontSize: 30 }}>⚖️</span>
-            <div style={{ fontFamily: "'Cinzel'", fontSize: "0.78rem", color: "#ff6666", letterSpacing: 2 }}>Make Accusation</div>
-            <div style={{ color: "#4a3a20", fontFamily: "'Crimson Text'", fontSize: "0.68rem" }}>Name the thief</div>
-          </div>
+        {/* Special */}
+        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:8 }}>
+          {[
+            { icon:"◈", name:"Ancient Runes", sub:"Decode the trapdoor", type:"cipher", active:cipherSolved, color:cipherSolved?"rgba(64,160,96,.5)":"rgba(100,80,200,.2)", textColor:cipherSolved?"rgba(64,160,96,.8)":"rgba(140,130,220,.7)" },
+            { icon:"⚖", name:"Accusation",    sub:"Name the thief",     type:"accuse", active:false,          color:"rgba(139,26,26,.25)",                                 textColor:"rgba(192,64,64,.7)" },
+          ].map(c=>(
+            <div key={c.type} onClick={()=>setView({type:c.type})} style={{
+              background:"linear-gradient(145deg,#111020,#0e0c18)",
+              border:`1px solid ${c.color}`,
+              borderRadius:3, padding:"16px 10px", textAlign:"center", cursor:"pointer",
+              transition:"all .4s cubic-bezier(.23,1,.32,1)",
+              display:"flex",flexDirection:"column",alignItems:"center",gap:5,
+            }}>
+              <span style={{ fontSize:24,color:c.textColor,filter:`drop-shadow(0 0 6px ${c.color})` }}>{c.icon}</span>
+              <p style={{ fontFamily:"'Cinzel',serif",fontSize:".68rem",color:c.textColor,letterSpacing:".15em" }}>{c.name}</p>
+              <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.goldDim,fontSize:".72rem",fontStyle:"italic" }}>{c.sub}</p>
+              {c.active&&<p style={{ fontFamily:"'Cinzel',serif",color:"rgba(64,160,96,.5)",fontSize:".52rem",letterSpacing:".3em" }}>SOLVED</p>}
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -685,54 +710,58 @@ function HogwartsMap({ clues, interrogated, cipherSolved, setView }) {
 /* ══════════════════════════════════════════════════════════
    INTRO
 ══════════════════════════════════════════════════════════ */
-function HPIntro({ onStart }) {
-  const [step, setStep] = useState(0);
-  const { out, done } = useTypewriter(CASE.premise, 28, step === 1);
+function Intro({ onStart }) {
+  const [step,setStep] = useState(0);
+  const {out,done}     = useTypewriter(PREMISE, 24, step===1);
+
   return (
-    <div style={{ minHeight: "100vh", background: "radial-gradient(ellipse at center,#0d0a06,#020100)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} className="fi">
-      <Stars count={80} /><Candles />
-      {step === 0 && (
-        <div style={{ textAlign: "center", maxWidth: 540, width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 14, position: "relative", zIndex: 5 }} className="fiu">
-          <p style={{ color: "#4a3a20", fontFamily: "'Cinzel'", fontSize: "0.68rem", letterSpacing: 5 }}>A HOGWARTS MYSTERY</p>
-          <h1 style={{ fontFamily: "'Cinzel Decorative'", fontSize: "clamp(1.6rem,8vw,3.2rem)", color: "#d4af37", letterSpacing: 4, animation: "goldGlow 3s infinite", lineHeight: 1.15, textAlign: "center" }}>THE PHILOSOPHER'S<br />THIEF</h1>
-          <p style={{ color: "#4a3a20", fontFamily: "'Crimson Text'", fontSize: "0.95rem", fontStyle: "italic", letterSpacing: 2 }}>A Hogwarts Mystery</p>
-          <div style={{ width: 60, height: 1, background: "#8b691433" }} />
-          <div style={{ fontSize: 80, animation: "wandPulse 2s infinite" }}>⚡</div>
-          <p style={{ color: "#8b6914", fontFamily: "'Cinzel'", fontSize: "0.7rem", letterSpacing: 4 }}>DETECTIVE AMRITHA</p>
-          <p style={{ color: "#4a3a20", fontFamily: "'Crimson Text'", fontSize: "0.9rem", fontStyle: "italic" }}>The brightest witch of her age. Born for this.</p>
-          <div style={{ width: 60, height: 1, background: "#8b691433" }} />
-          <p style={{ color: "#2a1e08", fontFamily: "'Cinzel'", fontSize: "0.7rem", letterSpacing: 2 }}>📍 {CASE.setting}</p>
-          <Btn onClick={() => setStep(1)} style={{ animation: "wandPulse 2s infinite", marginTop: 8 }}>🪄 Begin Investigation →</Btn>
+    <div style={{ minHeight:"100vh",background:THEME.bg,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px 20px 260px" }} className="fi">
+      <style>{G}</style>
+      <MagicParticles count={55}/><FogLayers/><AtmosphericLightning/><CinematicCastle/>
+
+      {step===0 && (
+        <div className="fiu" style={{ textAlign:"center",maxWidth:480,width:"100%",display:"flex",flexDirection:"column",alignItems:"center",gap:18,position:"relative",zIndex:10 }}>
+          <p style={{ fontFamily:"'Cinzel',serif",color:THEME.goldDim,fontSize:".6rem",letterSpacing:".6em" }}>A HOGWARTS MYSTERY</p>
+          <RuneRing size={100}/>
+          <h1 style={{ fontFamily:"'Cinzel',serif",fontWeight:700,fontSize:"clamp(1.6rem,7vw,3rem)",color:THEME.gold,letterSpacing:".06em",lineHeight:1.15,textAlign:"center",textShadow:"0 0 60px rgba(201,168,76,.3)" }}>
+            The Philosopher's<br/>Thief
+          </h1>
+          <GoldDivider style={{ maxWidth:240 }}/>
+          <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.silverDim,fontSize:".95rem",fontStyle:"italic",opacity:.75 }}>For the sharpest detective in the room</p>
+          <p style={{ fontFamily:"'Cinzel',serif",color:"rgba(201,168,76,.3)",fontSize:".62rem",letterSpacing:".35em" }}>📍 Hogwarts · 11:47 PM</p>
+          <CineBtn onClick={()=>setStep(1)} style={{ animation:"lockPulse 2.5s infinite",marginTop:8 }}>Begin Investigation</CineBtn>
         </div>
       )}
-      {step === 1 && (
-        <div style={{ width: "100%", maxWidth: 660, position: "relative", zIndex: 5 }} className="fi">
-          <div style={{ textAlign: "center", marginBottom: 18 }}>
-            <span style={{ display: "inline-block", border: "1px solid #d4af3744", color: "#d4af37", padding: "6px 24px", fontFamily: "'Cinzel'", fontSize: "0.78rem", letterSpacing: 4 }}>CASE BRIEFING</span>
-          </div>
-          <div style={{ background: "linear-gradient(145deg,#1a1208,#0f0a04)", border: "1px solid #1a1208", borderRadius: 4, padding: "26px 22px", display: "flex", flexDirection: "column", gap: 20 }}>
-            <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
-              <div style={{ fontSize: 60, animation: "wandPulse 2s infinite", flexShrink: 0 }}>⚡</div>
-              <pre style={{ fontFamily: "'Crimson Text'", fontSize: "1.05rem", color: "#c8b89a", lineHeight: 1.9, whiteSpace: "pre-wrap", flex: 1, minWidth: 200, minHeight: 80 }}>{out}{!done && <span style={{ animation: "goldGlow .8s infinite" }}>▌</span>}</pre>
+
+      {step===1 && (
+        <div className="fi" style={{ width:"100%",maxWidth:480,position:"relative",zIndex:10 }}>
+          <ParchmentCard glowing>
+            <div style={{ textAlign:"center",marginBottom:18 }}>
+              <p style={{ fontFamily:"'Cinzel',serif",color:THEME.goldDim,fontSize:".6rem",letterSpacing:".5em",marginBottom:12 }}>CASE BRIEFING</p>
+              <GoldDivider/>
             </div>
+            <pre style={{ fontFamily:"'IM Fell English',serif",fontSize:"1rem",color:THEME.parchDark,lineHeight:2,whiteSpace:"pre-wrap",minHeight:80 }}>
+              {out}<span style={{ color:THEME.gold,animation:"goldPulse .8s infinite" }}>{!done?"▌":""}</span>
+            </pre>
             {done && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 18, alignItems: "center" }} className="fiu">
-                <div style={{ width: "100%", background: "rgba(212,175,55,0.03)", border: "1px solid #1a1208", borderRadius: 4, padding: 18 }}>
-                  <p style={{ color: "#8b6914", fontFamily: "'Cinzel'", fontSize: "0.66rem", letterSpacing: 4, marginBottom: 12, textAlign: "center" }}>HOW TO PLAY</p>
-                  {[["🏰", "Explore 5 locations", "Find clues hidden across Hogwarts"],["🎭", "Interrogate 5 suspects", "Question everyone — watch for tells"],["🔮", "Decode Ancient Runes", "Crack the trapdoor inscription"],["⚖️", "Name the thief", "One accusation — make it count"]].map(([icon, t, d], i) => (
-                    <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 10 }}>
-                      <span style={{ fontSize: 18, flexShrink: 0 }}>{icon}</span>
+              <div className="fiu" style={{ display:"flex",flexDirection:"column",gap:18,alignItems:"center" }}>
+                <GoldDivider/>
+                <div style={{ width:"100%",background:"rgba(0,0,0,.2)",border:"1px solid rgba(201,168,76,.1)",borderRadius:2,padding:"18px 20px" }}>
+                  <p style={{ fontFamily:"'Cinzel',serif",color:THEME.goldDim,fontSize:".6rem",letterSpacing:".45em",marginBottom:12,textAlign:"center" }}>INVESTIGATION GUIDE</p>
+                  {[["🏰","Explore 5 locations","Uncover hidden evidence"],["🎭","Question 5 suspects","Read between the lines"],["◈","Decode ancient runes","Break the trapdoor cipher"],["⚖","Make your accusation","One chance — use it wisely"]].map(([icon,t,d],i)=>(
+                    <div key={i} style={{ display:"flex",gap:12,alignItems:"flex-start",padding:"8px 0",borderBottom:"1px solid rgba(201,168,76,.06)" }}>
+                      <span style={{ fontSize:16,flexShrink:0,marginTop:2 }}>{icon}</span>
                       <div>
-                        <p style={{ color: "#d4af37", fontFamily: "'Cinzel'", fontSize: "0.75rem", letterSpacing: 2, marginBottom: 2 }}>{t}</p>
-                        <p style={{ color: "#4a3a20", fontFamily: "'Crimson Text'", fontSize: "0.9rem" }}>{d}</p>
+                        <p style={{ fontFamily:"'Cinzel',serif",color:THEME.gold,fontSize:".7rem",letterSpacing:".2em",marginBottom:3 }}>{t}</p>
+                        <p style={{ fontFamily:"'Cormorant Garamond',serif",color:THEME.silverDim,fontSize:".88rem",fontStyle:"italic" }}>{d}</p>
                       </div>
                     </div>
                   ))}
                 </div>
-                <Btn onClick={onStart} style={{ animation: "wandPulse 2s infinite" }}>🏰 Enter Hogwarts →</Btn>
+                <CineBtn onClick={onStart} style={{ animation:"lockPulse 2.5s infinite" }}>Enter Hogwarts</CineBtn>
               </div>
             )}
-          </div>
+          </ParchmentCard>
         </div>
       )}
     </div>
@@ -740,29 +769,29 @@ function HPIntro({ onStart }) {
 }
 
 /* ══════════════════════════════════════════════════════════
-   ROOT CONTROLLER
+   ROOT
 ══════════════════════════════════════════════════════════ */
 export default function HogwartsMystery() {
-  const [phase, setPhase] = useState("intro");
-  const [view, setViewState] = useState(null);
-  const [clues, setClues] = useState(HP_ROOMS.flatMap(r => r.clues.map(c => ({ ...c, found: false }))));
-  const [interrogated, setInterrogated] = useState([]);
-  const [cipherSolved, setCipherSolved] = useState(false);
+  const [phase,setPhase]     = useState("intro");
+  const [view,setViewState]  = useState(null);
+  const [clues,setClues]     = useState(ROOMS.flatMap(r=>r.clues.map(c=>({...c,found:false}))));
+  const [interrogated,setInt]= useState([]);
+  const [cipher,setCipher]   = useState(false);
 
-  const setView = v => { setViewState(v); setPhase(v ? v.type : "manor"); };
-  const findClue = id => setClues(prev => prev.map(c => c.id === id ? { ...c, found: true } : c));
-  const completeInt = id => setInterrogated(prev => prev.includes(id) ? prev : [...prev, id]);
+  const setView = v => { setViewState(v); setPhase(v?v.type:"hub"); };
+  const findClue = id => setClues(p=>p.map(c=>c.id===id?{...c,found:true}:c));
+  const completeInt = id => setInt(p=>p.includes(id)?p:[...p,id]);
 
-  if (phase === "intro") return <><style>{G}</style><HPIntro onStart={() => setPhase("manor")} /></>;
-  if (phase === "victory") return <><style>{G}</style><HPVictory /></>;
+  if(phase==="intro")   return <Intro onStart={()=>setPhase("hub")}/>;
+  if(phase==="victory") return <Victory/>;
 
-  const room = view?.type === "room" ? HP_ROOMS.find(r => r.id === view.id) : null;
-  const suspect = view?.type === "interrogation" ? HP_SUSPECTS.find(s => s.id === view.id) : null;
+  const room    = view?.type==="room"          ? ROOMS.find(r=>r.id===view.id)    : null;
+  const suspect = view?.type==="interrogation" ? SUSPECTS.find(s=>s.id===view.id) : null;
 
-  if (phase === "room" && room) return <><style>{G}</style><RoomExplorer room={room} allClues={clues} onFindClue={findClue} onBack={() => setView(null)} /></>;
-  if (phase === "interrogation" && suspect) return <><style>{G}</style><Interrogation suspect={suspect} onBack={() => setView(null)} onComplete={completeInt} /></>;
-  if (phase === "cipher") return <><style>{G}</style><RunesCipher onSolve={() => setCipherSolved(true)} solved={cipherSolved} onBack={() => setView(null)} /></>;
-  if (phase === "accuse") return <><style>{G}</style><HPAccusation clues={clues} interrogated={interrogated} cipherSolved={cipherSolved} onAccuse={c => { if (c) setPhase("victory"); }} onBack={() => setView(null)} /></>;
+  if(phase==="room"&&room)             return <RoomExplorer room={room} allClues={clues} onFindClue={findClue} onBack={()=>setView(null)}/>;
+  if(phase==="interrogation"&&suspect) return <Interrogation suspect={suspect} onBack={()=>setView(null)} onComplete={completeInt}/>;
+  if(phase==="cipher")                 return <RunesCipher onSolve={()=>setCipher(true)} solved={cipher} onBack={()=>setView(null)}/>;
+  if(phase==="accuse")                 return <Accusation clues={clues} interrogated={interrogated} cipherSolved={cipher} onAccuse={c=>{if(c)setPhase("victory");}} onBack={()=>setView(null)}/>;
 
-  return <><style>{G}</style><HogwartsMap clues={clues} interrogated={interrogated} cipherSolved={cipherSolved} setView={setView} /></>;
+  return <InvestigationHub clues={clues} interrogated={interrogated} cipherSolved={cipher} setView={setView}/>;
 }
