@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { HP_CSS, AmrithaWitch, HogwartsCastle, Stars, FloatingCandles, FlyingBroom, ShootingStar } from "./HPShared";
+import { G, THEME, CinePage, CinematicCastle, MagicParticles, FogLayers, AtmosphericLightning, RuneRing, MagicOrb, ParchmentCard, GoldDivider, CineBtn, CineTitle, useTypewriter } from "./HPCore";
 import HogwartsSurprise from "./HogwartsSurprise";
 
-const _T = 1774377000000;
+const _T = 1774377000000; // 25 Mar 2026 00:00:00 IST
 
 async function fetchServerTime() {
   try {
     const r = await fetch("https://worldtimeapi.org/api/timezone/Asia/Kolkata",{cache:"no-store"});
-    const d = await r.json();
-    return new Date(d.datetime).getTime();
+    return new Date((await r.json()).datetime).getTime();
   } catch { return Date.now(); }
 }
 
@@ -22,193 +21,224 @@ function parseRemaining(ms) {
   };
 }
 
-function SpellAlert({ onClose }) {
+/* ── Locked Alert ── */
+function LockedAlert({ onClose }) {
   return (
-    <div style={{ position:"fixed",inset:0,background:"rgba(3,2,8,.92)",backdropFilter:"blur(10px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:300,padding:20 }} onClick={onClose}>
-      <div style={{ background:"linear-gradient(145deg,#120e22,#0e0a1c)",border:"2px solid #d4af37",borderRadius:6,padding:"36px 28px",maxWidth:340,width:"100%",textAlign:"center",boxShadow:"0 0 80px rgba(139,105,20,.3)",animation:"alertPop .4s cubic-bezier(.34,1.56,.64,1)" }} onClick={e=>e.stopPropagation()}>
-        <div style={{ fontSize:"3rem",marginBottom:10,animation:"wandWave 1s ease-in-out infinite alternate" }}>🪄</div>
-        <h2 style={{ fontFamily:"'Cinzel Decorative'",color:"#d4af37",fontSize:"1.4rem",marginBottom:10,textShadow:"0 0 20px rgba(212,175,55,.6)" }}>Alohomora!</h2>
-        <p style={{ color:"#c8b89a",fontFamily:"'Crimson Text'",fontSize:"1rem",lineHeight:1.9,marginBottom:8 }}>
-          The enchantment holds, dear witch.<br/>
-          The gates open only when stars align<br/>at the witching hour on...
+    <div style={{ position:"fixed",inset:0,background:"rgba(4,3,8,.92)",backdropFilter:"blur(12px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:400,padding:20 }} onClick={onClose}>
+      <div style={{ background:"linear-gradient(145deg,#120e20,#0e0b18)",border:"1px solid rgba(201,168,76,.35)",borderRadius:4,padding:"44px 32px",maxWidth:360,width:"100%",textAlign:"center",boxShadow:"0 0 80px rgba(201,168,76,.1), 0 40px 80px rgba(0,0,0,.7)",animation:"alertReveal .5s cubic-bezier(.23,1,.32,1)" }} onClick={e=>e.stopPropagation()}>
+        <RuneRing size={80}/>
+        <div style={{ marginTop:20,marginBottom:6 }}>
+          <p style={{ fontFamily:"'Cinzel',serif",color:THEME.gold,fontSize:".7rem",letterSpacing:"0.45em",marginBottom:10 }}>ENCHANTMENT ACTIVE</p>
+          <h3 style={{ fontFamily:"'Cinzel',serif",color:THEME.gold,fontSize:"1.4rem",letterSpacing:".1em",marginBottom:16,textShadow:"0 0 20px rgba(201,168,76,.4)" }}>The Gates Are Sealed</h3>
+        </div>
+        <p style={{ color:THEME.silver,fontFamily:"'Cormorant Garamond',serif",fontSize:"1rem",lineHeight:1.9,marginBottom:8,opacity:.8 }}>
+          Ancient magic holds this door shut.<br/>It yields only at the appointed hour —
         </p>
-        <p style={{ color:"#d4af37",fontFamily:"'Cinzel Decorative'",fontSize:"0.95rem",letterSpacing:2,marginBottom:22 }}>25th March · XII · IST</p>
-        <button style={{ padding:"12px 28px",background:"linear-gradient(135deg,#8b1a1a,#a52020)",border:"1.5px solid #d4af37",color:"#f0e6c8",fontFamily:"'Cinzel'",fontSize:".88rem",letterSpacing:2,cursor:"pointer",borderRadius:3 }} onClick={onClose}>I Shall Wait 🦉</button>
+        <p style={{ color:THEME.gold,fontFamily:"'Cinzel',serif",fontSize:".88rem",letterSpacing:".2em",marginBottom:28 }}>25th March · Midnight · IST</p>
+        <GoldDivider style={{ marginBottom:24 }}/>
+        <CineBtn onClick={onClose}>I shall wait</CineBtn>
       </div>
     </div>
   );
 }
 
+/* ── Launch overlay ── */
+function LaunchOverlay() {
+  return (
+    <div style={{ position:"fixed",inset:0,background:THEME.bg,zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",animation:"fadeIn .3s ease" }}>
+      <style>{G}</style>
+      <MagicParticles count={60}/>
+      <div style={{ textAlign:"center",position:"relative",zIndex:10 }}>
+        <RuneRing size={120}/>
+        <p style={{ color:THEME.gold,fontFamily:"'Cinzel',serif",fontSize:"1.2rem",letterSpacing:".35em",marginTop:24,animation:"breathe 1.5s ease-in-out infinite" }}>ALOHOMORA</p>
+      </div>
+    </div>
+  );
+}
+
+/* ── Main ── */
 export default function HogwartsCountdown() {
-  const [page,setPage]             = useState("countdown");
-  const [time,setTime]             = useState(null);
-  const [serverOk,setServerOk]     = useState(false);
-  const [checking,setChecking]     = useState(true);
-  const [launched,setLaunched]     = useState(false);
-  const [showAlert,setShowAlert]   = useState(false);
-  const serverOffsetRef            = useRef(0);
+  const [page,setPage]         = useState("countdown");
+  const [time,setTime]         = useState(null);
+  const [serverOk,setOk]       = useState(false);
+  const [checking,setChecking] = useState(true);
+  const [launched,setLaunched] = useState(false);
+  const [showAlert,setAlert]   = useState(false);
+  const offsetRef              = useRef(0);
 
   useEffect(()=>{
     (async()=>{
-      const sNow = await fetchServerTime();
-      serverOffsetRef.current = sNow - Date.now();
-      setTime(parseRemaining(_T - sNow));
-      setServerOk(true); setChecking(false);
+      const s = await fetchServerTime();
+      offsetRef.current = s - Date.now();
+      setTime(parseRemaining(_T - s));
+      setOk(true); setChecking(false);
     })();
   },[]);
 
   useEffect(()=>{
     if(!serverOk) return;
-    const iv = setInterval(()=>{ const now=Date.now()+serverOffsetRef.current; setTime(parseRemaining(_T-now)); },1000);
-    return()=>clearInterval(iv);
+    const iv = setInterval(()=>{
+      setTime(parseRemaining(_T - (Date.now()+offsetRef.current)));
+    },1000);
+    return ()=>clearInterval(iv);
   },[serverOk]);
 
   const isOver = serverOk && time === null;
 
   const handleEnter = useCallback(async()=>{
     setChecking(true);
-    const sNow = await fetchServerTime();
-    serverOffsetRef.current = sNow - Date.now();
-    const rem = _T - sNow;
+    const s = await fetchServerTime();
+    offsetRef.current = s - Date.now();
+    const rem = _T - s;
     setTime(parseRemaining(rem)); setChecking(false);
-    if(rem > 0){ setShowAlert(true); return; }
+    if(rem > 0){ setAlert(true); return; }
     setLaunched(true);
-    setTimeout(()=>setPage("surprise"),1500);
+    setTimeout(()=>setPage("surprise"),2000);
   },[]);
 
   if(page==="surprise") return <HogwartsSurprise/>;
 
   const units = time ? [
-    {label:"Days",    value:time.days},
-    {label:"Hours",   value:time.hours},
-    {label:"Minutes", value:time.minutes},
-    {label:"Seconds", value:time.seconds},
+    {label:"Days",value:time.days},{label:"Hours",value:time.hours},
+    {label:"Minutes",value:time.minutes},{label:"Seconds",value:time.seconds},
   ] : [];
 
   return (
-    <div style={{ minHeight:"100vh", background:"radial-gradient(ellipse at 50% 0%,#100820 0%,#080612 45%,#050308 100%)", display:"flex", flexDirection:"column", alignItems:"center", overflowX:"hidden", overflowY:"auto", position:"relative", paddingBottom:220 }}>
-      <style>{HP_CSS}</style>
-      <Stars count={90}/>
-      <FloatingCandles count={11}/>
-      <FlyingBroom/>
-      <ShootingStar/>
-      <HogwartsCastle/>
+    <div style={{ minHeight:"100vh",background:THEME.bg,display:"flex",flexDirection:"column",alignItems:"center",overflowX:"hidden",overflowY:"auto",position:"relative",paddingBottom:280 }}>
+      <style>{G}</style>
+      <MagicParticles count={55}/>
+      <FogLayers/>
+      <AtmosphericLightning/>
+      <CinematicCastle/>
 
-      {showAlert && <SpellAlert onClose={()=>setShowAlert(false)}/>}
+      {showAlert  && <LockedAlert onClose={()=>setAlert(false)}/>}
+      {launched   && <LaunchOverlay/>}
 
-      {/* Launch overlay */}
-      {launched && (
-        <div style={{ position:"fixed",inset:0,background:"#050308",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",animation:"launchFlash 1.5s ease forwards" }}>
-          <style>{`@keyframes launchFlash{0%{opacity:0}20%{opacity:1}80%{opacity:1}100%{opacity:0}}`}</style>
-          <div style={{ textAlign:"center" }}>
-            <div style={{ fontSize:80,animation:"wandSpinLaunch 1.5s ease forwards" }}>🪄</div>
-            <p style={{ color:"#d4af37",fontFamily:"'Cinzel Decorative'",fontSize:"1.4rem",letterSpacing:4,marginTop:16,animation:"fadeInUp .6s .3s ease both" }}>Alohomora!</p>
-          </div>
-        </div>
-      )}
+      {/* ── Content ── */}
+      <div style={{ width:"100%",maxWidth:520,padding:"52px 22px 28px",display:"flex",flexDirection:"column",alignItems:"center",gap:28,position:"relative",zIndex:10 }}>
 
-      {/* ── CONTENT ── */}
-      <div style={{ width:"100%", maxWidth:480, padding:"40px 20px 20px", display:"flex", flexDirection:"column", alignItems:"center", gap:22, position:"relative", zIndex:10 }}>
-
-        {/* Hogwarts Crest */}
-        <div style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:6 }}>
-          <div style={{ width:82,height:82,border:"2px solid #d4af37",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",background:"radial-gradient(circle,rgba(139,105,20,.18) 0%,transparent 70%)",animation:"crestPulse 3s ease-in-out infinite",boxShadow:"0 0 20px rgba(212,175,55,.25)" }}>
-            <style>{`@keyframes crestPulse{0%,100%{box-shadow:0 0 18px rgba(212,175,55,.2)}50%{box-shadow:0 0 40px rgba(212,175,55,.5),0 0 80px rgba(212,175,55,.12)}}`}</style>
-            <span style={{ fontSize:"2rem",filter:"drop-shadow(0 0 8px #d4af37)" }}>⚡</span>
-          </div>
-          <p style={{ color:"#8b6914",fontFamily:"'Cinzel'",fontSize:".62rem",letterSpacing:6 }}>HOGWARTS</p>
+        {/* Rune crest */}
+        <div className="fiu" style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:6 }}>
+          <RuneRing size={108}/>
+          <p style={{ fontFamily:"'Cinzel',serif",fontSize:".58rem",letterSpacing:"0.55em",color:THEME.goldDim,marginTop:6 }}>HOGWARTS · EST. 990 A.D.</p>
         </div>
 
-        {/* Title */}
-        <div style={{ textAlign:"center",width:"100%" }}>
-          <h1 className="goldGlow" style={{ fontFamily:"'Cinzel Decorative'",fontSize:"clamp(1.5rem,6.5vw,2.6rem)",color:"#d4af37",letterSpacing:2,lineHeight:1.2,textAlign:"center",textShadow:"0 0 30px rgba(212,175,55,.4)" }}>
-            {isOver ? "Mischief Managed!" : "A Most Special"}
-          </h1>
-          <p style={{ fontFamily:"'Crimson Text'",fontSize:"clamp(.95rem,3.5vw,1.25rem)",color:"#c8b89a",letterSpacing:2,fontStyle:"italic",textAlign:"center",marginTop:6 }}>
-            {isOver ? "Happy Birthday, Amritha! ⚡" : "Enchantment Awaits..."}
+        {/* Main title */}
+        <div className="fiu" style={{ textAlign:"center",animationDelay:".15s" }}>
+          <p style={{ fontFamily:"'Cinzel',serif",fontSize:".6rem",letterSpacing:"0.55em",color:THEME.goldDim,marginBottom:14 }}>
+            {isOver ? "THE HOUR HAS COME" : "AN ENCHANTMENT AWAITS"}
           </p>
-        </div>
-
-        {/* Witch Character */}
-        <div style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:4 }}>
-          <AmrithaWitch size={148} expression={isOver?"happy":"determined"} showWand showBook/>
-          <p style={{ color:"#8b6914",fontFamily:"'Cinzel'",fontSize:".6rem",letterSpacing:3 }}>DETECTIVE AMRITHA · HOGWARTS WITCH</p>
+          <h1 style={{
+            fontFamily:"'Cinzel',serif", fontWeight:700,
+            fontSize:"clamp(1.8rem,7.5vw,3.2rem)",
+            color:THEME.gold, letterSpacing:".06em", lineHeight:1.15, textAlign:"center",
+            textShadow:"0 0 60px rgba(201,168,76,.35), 0 2px 4px rgba(0,0,0,.8)",
+          }}>
+            {isOver ? "Mischief\nManaged" : "A Most\nSpecial Gift"}
+          </h1>
+          <GoldDivider style={{ marginTop:18 }}/>
+          <p style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:"clamp(.95rem,3vw,1.15rem)",color:THEME.silver,letterSpacing:".12em",marginTop:14,fontStyle:"italic",opacity:.75 }}>
+            {isOver ? "Happy Birthday, Amritha" : "For someone extraordinary"}
+          </p>
         </div>
 
         {/* Hogwarts Letter */}
         {!isOver && !checking && (
-          <div style={{ width:"100%",background:"linear-gradient(145deg,#1c1608,#140f04)",border:"1px solid #d4af3755",borderRadius:4,padding:"28px 20px 20px",position:"relative",boxShadow:"0 8px 28px rgba(0,0,0,.5),inset 0 0 18px rgba(139,105,20,.04)",animation:"letterReveal .8s ease forwards" }}>
-            <div style={{ position:"absolute",top:-18,left:"50%",transform:"translateX(-50%)",fontSize:28,filter:"drop-shadow(0 0 8px rgba(212,175,55,.6))",background:"#140f04",padding:"0 10px" }}>🦉</div>
-            <p style={{ color:"#c8b89a",fontFamily:"'Crimson Text'",fontSize:".95rem",lineHeight:2,textAlign:"center",marginTop:6 }}>
-              <em style={{ color:"#d4af37" }}>Dear Amritha,</em><br/><br/>
-              We are pleased to inform you that a most magical<br/>
+          <ParchmentCard glowing className="fiu" style={{ animationDelay:".3s" }}>
+            <div style={{ textAlign:"center",marginBottom:18 }}>
+              <p style={{ fontFamily:"'Cinzel',serif",fontSize:".6rem",letterSpacing:"0.45em",color:THEME.goldDim,marginBottom:4 }}>HOGWARTS SCHOOL OF WITCHCRAFT AND WIZARDRY</p>
+              <GoldDivider/>
+            </div>
+            <p style={{ fontFamily:"'IM Fell English',serif",fontSize:"1.05rem",color:THEME.parchDark,lineHeight:2,textAlign:"center" }}>
+              <em style={{ color:THEME.gold }}>Dear Amritha,</em><br/><br/>
+              We are pleased to inform you that a most extraordinary<br/>
               surprise has been prepared in your honour.<br/>
-              The enchantment shall be revealed at midnight<br/>
-              on the 25th of March.
+              The enchantment shall reveal itself at the stroke<br/>
+              of midnight on the 25th of March.
             </p>
-            <p style={{ color:"#8b6914",fontSize:".78rem",letterSpacing:1,textAlign:"right",marginTop:14,fontStyle:"italic",fontFamily:"'Crimson Text'" }}>— Headmaster's Office, Hogwarts</p>
-          </div>
+            <GoldDivider style={{ marginTop:18,marginBottom:12 }}/>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:".85rem",color:THEME.goldDim,textAlign:"right",fontStyle:"italic",letterSpacing:".08em" }}>
+              — Headmaster's Office, Hogwarts
+            </p>
+          </ParchmentCard>
         )}
 
         {/* Timer */}
         {!isOver && !checking && (
-          <div style={{ textAlign:"center",width:"100%" }}>
-            <p style={{ color:"#8b6914",fontFamily:"'Cinzel'",fontSize:".72rem",letterSpacing:3,marginBottom:16 }}>✦ The Enchantment Breaks In ✦</p>
-            <div style={{ display:"flex",gap:10,justifyContent:"center",width:"100%" }}>
+          <div className="fiu" style={{ textAlign:"center",width:"100%",animationDelay:".45s" }}>
+            <p style={{ fontFamily:"'Cinzel',serif",fontSize:".6rem",letterSpacing:"0.45em",color:THEME.goldDim,marginBottom:18 }}>THE ENCHANTMENT BREAKS IN</p>
+            <div style={{ display:"flex",gap:"clamp(8px,3vw,16px)",justifyContent:"center" }}>
               {units.map(({label,value})=>(
-                <div key={label} style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:8,flex:1,maxWidth:100 }}>
-                  <div style={{ width:"100%",background:"linear-gradient(145deg,#1c1608,#241a08)",border:"1px solid #d4af3766",borderRadius:6,padding:"14px 6px",textAlign:"center",boxShadow:"0 0 14px rgba(212,175,55,.08)",animation:"timerGlow 2s ease-in-out infinite" }}>
-                    <span style={{ display:"block",fontSize:"clamp(1.8rem,6.5vw,2.8rem)",fontWeight:700,color:"#d4af37",fontFamily:"'Cinzel Decorative'",lineHeight:1,textShadow:"0 0 14px rgba(212,175,55,.6)" }}>
+                <div key={label} style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:10,flex:1,maxWidth:100 }}>
+                  <div style={{
+                    width:"100%",
+                    background:"linear-gradient(145deg,#14111e,#0e0c16)",
+                    border:"1px solid rgba(201,168,76,0.2)",
+                    borderRadius:3, padding:"16px 6px", textAlign:"center",
+                    boxShadow:"0 0 20px rgba(201,168,76,.06),inset 0 0 20px rgba(0,0,0,.4)",
+                    animation:"glowPulse 3s ease-in-out infinite",
+                    position:"relative", overflow:"hidden",
+                  }}>
+                    {/* Subtle shimmer */}
+                    <div style={{ position:"absolute",inset:0,background:"linear-gradient(105deg,transparent 40%,rgba(201,168,76,.04) 50%,transparent 60%)",backgroundSize:"200% 100%",animation:"shimmer 4s linear infinite" }}/>
+                    <span style={{ display:"block",fontFamily:"'Cinzel',serif",fontWeight:700,fontSize:"clamp(2rem,7vw,3rem)",color:THEME.gold,lineHeight:1,textShadow:"0 0 20px rgba(201,168,76,.5)",position:"relative",zIndex:1,animation:"countUp .3s ease" }}>
                       {String(value).padStart(2,"0")}
                     </span>
                   </div>
-                  <span style={{ color:"#8b6914",fontSize:".6rem",letterSpacing:2,textTransform:"uppercase",fontFamily:"'Cinzel'" }}>{label}</span>
+                  <span style={{ fontFamily:"'Cinzel',serif",fontSize:".55rem",letterSpacing:"0.4em",color:THEME.goldDim,textTransform:"uppercase" }}>{label}</span>
                 </div>
               ))}
             </div>
-            <p style={{ color:"#4a3a20",fontFamily:"'Cinzel'",fontSize:".7rem",letterSpacing:3,marginTop:12 }}>25th March · XII · IST</p>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:".82rem",letterSpacing:".2em",color:THEME.goldDim,marginTop:14,fontStyle:"italic" }}>
+              25th March · XII · IST
+            </p>
           </div>
         )}
 
-        {checking && <p style={{ color:"#8b6914",fontFamily:"'Cinzel'",fontSize:".85rem",letterSpacing:3,textAlign:"center" }}>Consulting the stars... ✨</p>}
+        {checking && (
+          <p style={{ fontFamily:"'Cinzel',serif",color:THEME.goldDim,fontSize:".78rem",letterSpacing:".35em" }}>
+            Consulting the stars...
+          </p>
+        )}
 
         {/* Birthday message */}
         {isOver && (
-          <div style={{ width:"100%",background:"linear-gradient(145deg,#1c1608,#140f04)",border:"1px solid #d4af37",borderRadius:4,padding:"22px 20px",textAlign:"center",animation:"letterReveal .8s ease forwards" }}>
-            <p style={{ fontSize:"2rem",letterSpacing:6,marginBottom:12 }}>🎂⚡🦉🪄✨</p>
-            <p style={{ color:"#c8b89a",fontFamily:"'Crimson Text'",fontSize:"1rem",lineHeight:2 }}>
-              The enchantment has broken!<br/>
-              Your magical surprise awaits, young witch.<br/>
-              <em style={{ color:"#d4af37",display:"block",marginTop:8 }}>"Happiness can be found in the darkest of times,<br/>if one only remembers to turn on the light."</em>
+          <ParchmentCard glowing className="fiu" style={{ textAlign:"center" }}>
+            <p style={{ fontFamily:"'Cinzel',serif",fontSize:".6rem",letterSpacing:"0.45em",color:THEME.goldDim,marginBottom:16 }}>THE ENCHANTMENT HAS LIFTED</p>
+            <GoldDivider style={{ marginBottom:20 }}/>
+            <p style={{ fontFamily:"'IM Fell English',serif",fontSize:"1.05rem",color:THEME.parchDark,lineHeight:2 }}>
+              The night sky over Hogwarts glows golden.<br/>
+              Your surprise awaits, Amritha.<br/><br/>
+              <em style={{ color:THEME.gold }}>
+                "Happiness can be found even in the darkest of times,<br/>
+                if one only remembers to turn on the light."
+              </em>
             </p>
-          </div>
+            <GoldDivider style={{ marginTop:20 }}/>
+          </ParchmentCard>
         )}
 
         {/* Button */}
-        <div style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:10,width:"100%" }}>
-          <button
+        <div className="fiu" style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:12,width:"100%",animationDelay:".55s" }}>
+          <CineBtn
             onClick={handleEnter}
             disabled={checking||launched}
-            style={{
-              width:"100%",maxWidth:320,padding:"16px 20px",
-              background: !isOver ? "rgba(255,255,255,0.03)" : "linear-gradient(135deg,#8b1a1a,#a52020,#8b1a1a)",
-              border:`2px solid ${!isOver?"rgba(139,105,20,.18)":"#d4af37"}`,
-              color: !isOver ? "rgba(200,184,154,.25)" : "#f0e6c8",
-              fontFamily:"'Cinzel'",fontSize:"1rem",letterSpacing:3,cursor:"pointer",borderRadius:4,
-              boxShadow: isOver ? "0 0 25px rgba(139,26,26,.5),0 0 50px rgba(212,175,55,.1)" : "none",
-              transition:"all .3s",display:"flex",alignItems:"center",justifyContent:"center",gap:8,
-              opacity: checking ? 0.6 : 1,
-            }}
+            variant={isOver?"gold":"ghost"}
+            style={{ width:"100%",maxWidth:300,padding:"16px 20px",fontSize:".88rem",letterSpacing:".25em",animation:isOver?"lockPulse 2.5s infinite":"none" }}
           >
-            <span style={{ fontSize:"1.1rem" }}>🪄</span>
-            {checking ? "Consulting stars..." : isOver ? "Alohomora! Open Surprise" : "Alohomora!"}
-          </button>
+            {checking ? "Consulting the stars..." : "Alohomora"}
+          </CineBtn>
           {!isOver && !checking && (
-            <p style={{ color:"#4a3a20",fontFamily:"'Crimson Text'",fontSize:".78rem",letterSpacing:1,fontStyle:"italic",textAlign:"center" }}>
-              🔒 Sealed by ancient magic · Unlocks 25th March
+            <p style={{ fontFamily:"'Cormorant Garamond',serif",fontSize:".78rem",letterSpacing:".15em",color:"rgba(184,184,200,0.25)",fontStyle:"italic" }}>
+              Sealed until 25th March · Midnight · IST
             </p>
           )}
         </div>
+
+        {/* Ambient orbs */}
+        <MagicOrb size={60} color="#c9a84c" style={{ position:"fixed",top:"18%",left:"6%",zIndex:3,opacity:.35,animationDelay:"1s" }}/>
+        <MagicOrb size={40} color="#8b1a1a" style={{ position:"fixed",top:"35%",right:"5%",zIndex:3,opacity:.25,animationDelay:"2.5s" }}/>
+        <MagicOrb size={50} color="#1a4a2a" style={{ position:"fixed",bottom:"30%",left:"4%",zIndex:3,opacity:.2,animationDelay:"1.8s" }}/>
 
       </div>
     </div>
