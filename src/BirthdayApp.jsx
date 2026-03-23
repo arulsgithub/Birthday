@@ -1,4 +1,2 @@
 import HogwartsCountdown from "./HogwartsCountdown";
-export default function BirthdayApp() {
-  return <HogwartsCountdown />;
-}
+export default function BirthdayApp() { return <HogwartsCountdown/>; }
