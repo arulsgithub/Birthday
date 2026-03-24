@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { G, Page, Castle, CinematicBG, Particles, RuneRing, WandLight, Card, Btn, Title, Divider, useTypewriter } from "./HPCore";
 import HogwartsSurprise from "./HogwartsSurprise";
 
-const _T = 1774377000000; // 25 Mar 2026 00:00 IST
+const _T = 1774364165; // 25 Mar 2026 00:00 IST
 
 async function fetchServerTime() {
   try {
