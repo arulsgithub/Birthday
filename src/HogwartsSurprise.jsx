@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
 import { G, Page, Card, Btn, Title, Divider, RuneRing, WandLight, Confetti, Transition, useTypewriter } from "./HPCore";
 import HogwartsMystery from "./HogwartsMystery";
+import { loadGame, saveGame, clearGame } from "./storage";
+import { useNavigate } from "react-router-dom";
 
 /* ══════════════════════════════════════════════════
    STAGE 1 — THE CASE OF THE MISSING BIRTHDAY
 ══════════════════════════════════════════════════ */
 function Stage1({ onNext }) {
-  const [step,setStep]=[useState(0),(v)=>setStep(v)][1] || (() => {});
-  const [_step,_setStep] = useState(0);
-  const [suspect,setSuspect] = useState(null);
-  const [solved,setSolved]   = useState(false);
-  const step = _step; const setStep = _setStep;
+  const [step, setStep] = useState(0);
+  const [suspect, setSuspect] = useState(null);
+  const [solved, setSolved] = useState(false);
 
   const intro = "MINISTRY OF MAGIC — DEPARTMENT OF MYSTERIES\nCase File #HP-2503 · MOST URGENT\n\nThe Birthday Witch has vanished from Hogwarts\non the eve of her most significant day.\nThree persons of interest remain.\n\nDetective Amritha — you are our only hope.";
   const {out,done} = useTypewriter(intro, 24, step===1);
@@ -27,7 +27,9 @@ function Stage1({ onNext }) {
         <>
           <div className="fiu" style={{textAlign:"center"}}>
             <RuneRing size={88}/>
-            <Title eyebrow="MINISTRY OF MAGIC — DEPARTMENT OF MYSTERIES" size="clamp(1.3rem,5vw,2rem)" style={{marginTop:16}}>Case File #HP-2503</Title>
+            <Title eyebrow="MINISTRY OF MAGIC — DEPARTMENT OF MYSTERIES" size="clamp(1.3rem,5vw,2rem)" style={{marginTop:16}}>
+              Case File #HP-2503
+            </Title>
           </div>
           <Card>
             <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"1.05rem",color:"rgba(210,195,160,.8)",lineHeight:2,textAlign:"center"}}>
@@ -71,36 +73,79 @@ function Stage1({ onNext }) {
           <div style={{display:"flex",flexDirection:"column",gap:10,width:"100%"}}>
             {suspects.map(s=>(
               <div key={s.id} onClick={()=>setSuspect(s.id)} className="fiu" style={{
-                background: suspect===s.id?"linear-gradient(145deg,rgba(20,16,28,.95),rgba(15,12,22,.98))":"linear-gradient(145deg,rgba(10,14,24,.92),rgba(8,11,20,.96))",
+                background: suspect===s.id
+                  ?"linear-gradient(145deg,rgba(20,16,28,.95),rgba(15,12,22,.98))"
+                  :"linear-gradient(145deg,rgba(10,14,24,.92),rgba(8,11,20,.96))",
                 border:`1px solid ${suspect===s.id?"rgba(180,140,60,.4)":"rgba(180,140,60,.1)"}`,
-                borderRadius:4,padding:"18px 20px",cursor:"pointer",
+                borderRadius:4,
+                padding:"18px 20px",
+                cursor:"pointer",
                 transition:"all .4s cubic-bezier(.23,1,.32,1)",
                 boxShadow:suspect===s.id?"0 0 30px rgba(180,140,60,.08)":"none",
               }}>
                 <div style={{display:"flex",alignItems:"center",gap:14}}>
-                  <span style={{fontSize:26,filter:`drop-shadow(0 0 8px ${s.col})`}}>{s.icon}</span>
+                  <span style={{fontSize:26,filter:`drop-shadow(0 0 8px ${s.col})`}}>
+                    {s.icon}
+                  </span>
+
                   <div style={{flex:1}}>
-                    <p style={{fontFamily:"'Cinzel',serif",color:"rgba(200,165,80,.9)",fontSize:".88rem",letterSpacing:".08em"}}>{s.name}</p>
-                    <p style={{fontFamily:"'Cormorant Garamond',serif",color:"rgba(180,190,215,.45)",fontSize:".82rem",fontStyle:"italic"}}>{s.role}</p>
+                    <p style={{fontFamily:"'Cinzel',serif",color:"rgba(200,165,80,.9)",fontSize:".88rem",letterSpacing:".08em"}}>
+                      {s.name}
+                    </p>
+
+                    {/* ROLE (only after click) */}
+                    {suspect===s.id && (
+                      <p style={{
+                        fontFamily:"'Cormorant Garamond',serif",
+                        color:"rgba(180,190,215,.45)",
+                        fontSize:".82rem",
+                        fontStyle:"italic"
+                      }}>
+                        {s.role}
+                      </p>
+                    )}
                   </div>
-                  <span style={{fontFamily:"'Cinzel',serif",fontSize:".58rem",letterSpacing:".2em",color:s.col}}>{s.verdict}</span>
+
+                  {/* VERDICT (only after click) */}
+                  {suspect===s.id && (
+                    <span style={{
+                      fontFamily:"'Cinzel',serif",
+                      fontSize:".58rem",
+                      letterSpacing:".2em",
+                      color:s.col
+                    }}>
+                      {s.verdict}
+                    </span>
+                  )}
                 </div>
+
                 {suspect===s.id && (
                   <div className="fiu" style={{marginTop:14,paddingTop:14,borderTop:"1px solid rgba(180,140,60,.1)"}}>
-                    <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:".98rem",color:"rgba(210,195,160,.78)",lineHeight:1.85,fontStyle:"italic"}}>"{s.evidence}"</p>
+                    <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:".98rem",color:"rgba(210,195,160,.78)",lineHeight:1.85,fontStyle:"italic"}}>
+                      "{s.evidence}"
+                    </p>
                   </div>
                 )}
               </div>
             ))}
           </div>
-          {suspect===2&&!solved && <Btn onClick={()=>setSolved(true)} style={{animation:"lockPulse 2s infinite"}}>Declare Verdict</Btn>}
+
+          {suspect===2 && !solved && (
+            <Btn onClick={()=>setSolved(true)} style={{animation:"lockPulse 2s infinite"}}>
+              Declare Verdict
+            </Btn>
+          )}
+
           {solved && (
             <Card glow className="fiu" style={{textAlign:"center"}}>
-              <p style={{fontFamily:"'Cinzel',serif",color:"rgba(180,140,60,.5)",fontSize:".58rem",letterSpacing:".45em",marginBottom:14}}>CASE RESOLVED</p>
+              <p style={{fontFamily:"'Cinzel',serif",color:"rgba(180,140,60,.5)",fontSize:".58rem",letterSpacing:".45em",marginBottom:14}}>
+                CASE RESOLVED
+              </p>
               <Divider style={{marginBottom:18}}/>
               <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"1.02rem",color:"rgba(210,195,160,.82)",lineHeight:2}}>
                 Time stood accused. Time was found guilty.<br/>
-                It stole 365 enchanted days from Amritha —<br/>and returned them as brilliance, depth, and fire.
+                It stole 365 enchanted days from Amritha —<br/>
+                and returned them as brilliance, depth, and fire.
               </p>
               <Divider style={{margin:"18px 0"}}/>
               <Btn onClick={onNext}>Proceed to Next Chapter</Btn>
@@ -111,7 +156,6 @@ function Stage1({ onNext }) {
     </Page>
   );
 }
-
 /* ══════════════════════════════════════════════════
    STAGE 2 — UNLOCK THE CHAMBER
 ══════════════════════════════════════════════════ */

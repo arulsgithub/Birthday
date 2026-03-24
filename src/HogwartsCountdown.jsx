@@ -61,9 +61,9 @@ export default function HogwartsCountdown() {
 
   const handleEnter = useCallback(async()=>{
     setCheck(true);
-    const s=await fetchServerTime(); ref.current=s-Date.now();
-    const rem=_T-s; setTime(parseRem(rem)); setCheck(false);
-    if(rem>0){setAlert(true);return;}
+    // const s=await fetchServerTime(); ref.current=s-Date.now();
+    // const rem=_T-s; setTime(parseRem(rem)); setCheck(false);
+    // if(rem>0){setAlert(true);return;}
     setLaunch(true); setTimeout(()=>setPage("surprise"),2200);
   },[]);
 
